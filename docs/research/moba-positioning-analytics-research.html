@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MOBA positioning analytics research for Arena of Valor (RoV)</title>
+<style>
+  :root {
+    --bg: #000000;
+    --surface: #111111;
+    --surface-2: #1A1A1A;
+    --border: #2E2E2E;
+    --text: #C9C9C9;
+    --text-muted: #8A8A8A;
+    --text-strong: #FFFFFF;
+    --critical: #FF453A;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+  header { display: flex; flex-direction: column; gap: 10px; }
+  .eyebrow {
+    color: var(--text-muted);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  h1 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 30px;
+    line-height: 1.2;
+    font-weight: 700;
+  }
+  h2 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 21px;
+    font-weight: 700;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 {
+    margin: 0;
+    color: var(--text-strong);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  section { display: flex; flex-direction: column; gap: 16px; }
+  p { margin: 0; }
+  strong, b { color: var(--text-strong); font-weight: 700; }
+  a { color: var(--text-strong); text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--text-strong); }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--text-strong); outline-offset: 2px; }
+  ul, ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+  li::marker { color: var(--text-muted); }
+  .muted { color: var(--text-muted); }
+  .critical { color: var(--critical); font-weight: 700; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card.alert { border-color: var(--critical); }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 640px) { .grid.two { grid-template-columns: 1fr 1fr; } }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  th { background: var(--surface); color: var(--text-strong); font-weight: 700; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td.num, th.num { font-variant-numeric: tabular-nums; text-align: right; }
+  code, pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+  }
+  code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; color: var(--text-strong); }
+  pre {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; color: var(--text); }
+  .step { display: flex; gap: 14px; align-items: flex-start; }
+  .step .n {
+    flex: 0 0 28px; height: 28px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--surface-2);
+    color: var(--text-strong); font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .rank { display: flex; flex-direction: column; gap: 8px; }
+  .rank .row {
+    display: grid; grid-template-columns: 36px 1fr; gap: 12px;
+    padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .rank .row .k { color: var(--text-strong); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .rank .row .t { color: var(--text-strong); font-weight: 700; }
+  .rank .row .d { color: var(--text); font-size: 14px; margin-top: 2px; }
+  details { border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+  summary { cursor: pointer; padding: 12px 16px; color: var(--text-strong); font-weight: 700; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "+ "; color: var(--text-muted); }
+  details[open] summary::before { content: "\2013  "; }
+  details .body { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; }
+  .toc a {
+    text-decoration: none; font-size: 13px; color: var(--text);
+    border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 5px 12px;
+  }
+  .toc a:hover { color: var(--text-strong); border-color: var(--text-muted); }
+  .sources { font-size: 14px; }
+  .sources li { color: var(--text-muted); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <div class="eyebrow">rov_analytics · research · 2026-09-16</div>
+  <h1>How MOBA analytics measure movement and positioning, and how to adapt it to Arena of Valor</h1>
+  <p class="muted">Goal: a coaching tool that shows how competitive RoV players walk (pathing) and where and how long they stay (positioning). Sources cover Dota 2, League of Legends, and Honor of Kings research, commercial tools, and minimap computer vision.</p>
+  <nav class="toc" aria-label="Sections">
+    <a href="#conclusions">Conclusions</a>
+    <a href="#sources">Data sources</a>
+    <a href="#papers">Research</a>
+    <a href="#metrics">Metrics</a>
+    <a href="#viz">Visualisations</a>
+    <a href="#tools">Existing tools</a>
+    <a href="#cv">Minimap CV</a>
+    <a href="#plan">Adaptation plan</a>
+    <a href="#open">Open questions</a>
+    <a href="#refs">References</a>
+  </nav>
+</header>
+
+<section id="conclusions">
+  <h2>1. Key conclusions</h2>
+  <div class="card alert">
+    <p><span class="critical">No position data source exists for Arena of Valor.</span> Tencent, TiMi, Garena and Level Infinite publish no match API. In-game <code>.abc</code> replays are encrypted, version-locked, and nobody has parsed them. An API-based design like the League of Legends tools is not possible.</p>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>The realistic data path is minimap computer vision</h3>
+      <p>Read hero icons off the minimap from broadcast VODs (RPL, AWC, AIC, KPL) or screen-recorded replays. DeepLeague, PandaScore and pyLoL did this for LoL, and the 2026 Dota2-Vis paper did it for Dota. The recipe transfers directly.</p>
+    </div>
+    <div class="card">
+      <h3>The analytics layer is well understood</h3>
+      <p>Dota 2 and Honor of Kings research defines a small set of metrics (zone dwell, zone changes, within-team distance, convex hull, proximity, encounters) that separate pros from amateurs. They only need rescaling to AoV's smaller map and 12 to 18 minute games.</p>
+    </div>
+    <div class="card">
+      <h3>Nobody ships this for mobile MOBAs</h3>
+      <p>Tencent's 王者营地 (Honor of Kings Camp) app has an animated movement-route replay, but only for your own matches, on the Chinese server, inside the app. That gap is the opportunity.</p>
+    </div>
+    <div class="card">
+      <h3>Sampling at 1 to 2 Hz is enough</h3>
+      <p>Every coaching metric works at one position per second. Two per second helps tracking through teamfights. Above 5 Hz adds nothing.</p>
+    </div>
+  </div>
+</section>
+
+<section id="sources">
+  <h2>2. Data sources for AoV and HoK, ranked</h2>
+  <div class="rank">
+    <div class="row"><div class="k">1</div><div><div class="t">Broadcast and VOD minimap computer vision</div><div class="d">RPL on Garena RoV Thailand YouTube and garena.live, AWC and AIC on AoV Esports YouTube, KPL on Huya, Douyu and Bilibili. Public, 1080p, every pro match. Observer view usually has full vision. Overlays sometimes cover the minimap.</div></div></div>
+    <div class="row"><div class="k">2</div><div><div class="t">Screen-recorded in-game replay</div><div class="d">AoV added replays around v1.44 (Dec 2021). Cleanest frames, but player-perspective replays have fog of war. Verify whether the current Garena client offers a global or observer camera in replay.</div></div></div>
+    <div class="row"><div class="k">3</div><div><div class="t">Abios Hermes "Honor of Kings Computer Vision Channels"</div><div class="d">Commercial CV feed derived from broadcasts. Published channels are events, gold and kills. Positions would have to be requested. Enterprise pricing.</div></div></div>
+    <div class="row"><div class="k">4</div><div><div class="t">王者营地 private API scrape</div><div class="d">Tencent's backend stores per-hero movement routes (animated review since Jan 2019). Unofficial, session-bound, Chinese HoK only, violates terms. Not applicable to Garena RoV.</div></div></div>
+    <div class="row"><div class="k">5</div><div><div class="t">hok_env and Hokoff (Tencent AI Lab)</div><div class="d">1v1 and 3v3 reinforcement-learning environments with position features in the observation vector. Gated license. Useful only as a schema reference.</div></div></div>
+    <div class="row"><div class="k">6</div><div><div class="t">.abc replay files</div><div class="d">1 to 2 MB, encrypted, version-locked, almost certainly a lockstep input log that needs the engine to re-simulate. No parser exists.</div></div></div>
+    <div class="row"><div class="k">7</div><div><div class="t">Liquipedia, KPL data portal, Esports Charts</div><div class="d">Draft, results, KDA, viewership. No positions. Use to join match context onto tracks.</div></div></div>
+  </div>
+  <div class="card">
+    <h3>Anti-cheat note</h3>
+    <p>Recording your own screen (built-in recorder, scrcpy or ADB mirroring, MediaProjection, ReplayKit) is not flagged by Tencent ACE. Do not run the game in a cloned or virtualised container, and do not inject overlays. Pro matches come from public VODs, so this is moot there.</p>
+  </div>
+</section>
+
+<section id="papers">
+  <h2>3. What the research measures</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Paper</th><th>What it did</th><th>What to take</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://arxiv.org/abs/1603.07738" target="_blank" rel="noopener noreferrer">Drachen et al. 2014</a>, Dota 2 spatio-temporal team behavior</td><td>Hand-segmented the map into 11 zones. Measured zone changes and within-team distance. Clustered spread and collapse patterns.</td><td><strong>Pros have smaller within-team distance and more zone changes than amateurs.</strong> Compactness and rotation rate discriminate skill.</td></tr>
+        <tr><td><a href="https://ceur-ws.org/Vol-1842/paper_05.pdf" target="_blank" rel="noopener noreferrer">Rioult et al. 2014</a>, mining tracks of competitive games</td><td>Convex hull area, perimeter, inertia around centroid, centroid distance to base, per tick.</td><td>The standard team-spread metrics.</td></tr>
+        <tr><td><a href="https://www.semanticscholar.org/paper/ceea76ce4e18f37e7316564e4145fec03eb0f20a" target="_blank" rel="noopener noreferrer">Schubert, Drachen, Mahlmann 2016</a>, encounter detection</td><td>Heroes are graph nodes. An edge forms when distance drops below attack range. An encounter persists while connected.</td><td>Turns trajectories into fight events with location and participants. Auto-index for VOD review.</td></tr>
+        <tr><td><a href="https://link.springer.com/chapter/10.1007/978-3-319-24589-8_9" target="_blank" rel="noopener noreferrer">Eggert et al. 2015</a>, role classification</td><td>Zone occupancy over time classifies role.</td><td>Zone-dwell features alone identify role.</td></tr>
+        <tr><td><a href="https://arxiv.org/abs/2006.11199" target="_blank" rel="noopener noreferrer">Ahmad et al. 2020</a>, spatio-temporal behavior modeling</td><td>StratMapper (map plus timeline) and Glyph. Labels Push, Farm, Roam, Gank, Split, Teamfight.</td><td>Supports keep consistent spatial patterns. Carries shift with gold lead. Build per-role baselines.</td></tr>
+        <tr><td><a href="https://arxiv.org/abs/1812.07887" target="_blank" rel="noopener noreferrer">Wu et al. 2019 (Tencent)</a>, hierarchical macro strategy for Honor of Kings</td><td>300k HoK replays. Map discretised into a <strong>12x12 grid of 144 regions</strong>. Predicts region of next attack and macro phase.</td><td>The canonical zone grid for HoK and AoV. Session labeling (trajectory segment ending in an attack) is reusable.</td></tr>
+        <tr><td><a href="https://arxiv.org/abs/2503.09060" target="_blank" rel="noopener noreferrer">StratIncon Detector 2025</a>, LoL coaching visual analytics</td><td>DETR on broadcast minimap. Strategy = champion, coordinates, behavior. LSTM predicts pro-preferred strategy and flags inconsistencies. Coach study.</td><td>Coaches valued the replay view, event timeline with inconsistency glyphs, and per-champion heatmaps.</td></tr>
+        <tr><td><a href="https://www.sloansportsconference.com/research-papers/an-open-sourced-optical-tracking-and-advanced-esports-analytics-platform-for-league-of-legends" target="_blank" rel="noopener noreferrer">Maymin 2020</a>, optical tracking for LoL</td><td>Tracked champions several times per second from the replay client. Vision granted and denied.</td><td>Same premise as ours: official data is box-score only, so track it yourself.</td></tr>
+        <tr><td><a href="https://arxiv.org/abs/2209.08483" target="_blank" rel="noopener noreferrer">Honor of Kings Arena 2022</a>, <a href="https://arxiv.org/abs/2408.10556" target="_blank" rel="noopener noreferrer">Hokoff 2023</a></td><td>RL environments with per-frame position features.</td><td>Confirms the engine emits per-frame coordinates. Not accessible for pro 5v5.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="metrics">
+  <h2>4. Metrics to implement</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Metric</th><th>Definition</th><th>Coaching value</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Zone dwell time</strong></td><td>Seconds per player per zone, per game window (e.g. 3-minute buckets)</td><td>Passive jungler, over-farming, under-rotation</td></tr>
+        <tr><td><strong>Zone changes per minute</strong></td><td>Count of zone transitions</td><td>Pros rotate more</td></tr>
+        <tr><td><strong>Within-team distance</strong></td><td>Mean pairwise distance between the 5 teammates, per second</td><td>Compactness before objectives</td></tr>
+        <tr><td><strong>Convex hull, inertia, centroid</strong></td><td>Area of the 5-player hull, spread around centroid, centroid distance to own base</td><td>Playing forward vs back, spread vs grouped</td></tr>
+        <tr><td><strong>Proximity</strong> (Riot and Oracle's Elixir style)</td><td>Share of time a laner is within a threshold of the jungler. LoL uses 2000 units from 3:00 to 15:00. Also support and team proximity.</td><td>Who the jungler and support play around. Coaches already read these numbers.</td></tr>
+        <tr><td><strong>Encounters</strong></td><td>Distance-threshold graph episodes</td><td>Auto-detected fights for scrubbing</td></tr>
+        <tr><td><strong>Distance travelled, speed</strong></td><td>Path length per minute, per-zone speed</td><td>Separates walking from standing, flags idle time</td></tr>
+        <tr><td><strong>First-N-minute jungle path</strong></td><td>Camp or zone sequence with timestamps to first gank</td><td>Compare vs planned route or opponent</td></tr>
+        <tr><td><strong>Path frequency, next-cell win rate</strong></td><td>Grid transition frequencies, win rate per next cell with Beta-Binomial smoothing (Doran's Lab)</td><td>Habits and where deviations pay off</td></tr>
+        <tr><td><strong>Recall timing and location</strong></td><td>Time and position of each recall</td><td>Reset discipline</td></tr>
+        <tr><td><strong>Position at objective spawn</strong></td><td>Distance to Dark Slayer or Abyssal Dragon pit at spawn time</td><td>Setup timing</td></tr>
+        <tr><td><strong>Lane assignment</strong></td><td>Mode of coarse-grid cell during minutes 0 to 4 (OpenDota lane_pos method)</td><td>Auto-label roles</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>AoV recalibration</h3>
+    <p>Scale distance thresholds as a fraction of map width rather than copying LoL units. Use a window like 1:30 to 8:00 instead of 3:00 to 15:00, since AoV games last 12 to 18 minutes.</p>
+  </div>
+</section>
+
+<section id="viz">
+  <h2>5. Visualisations coaches actually use</h2>
+  <ul>
+    <li><strong>2D replay with timeline scrubber and event jump</strong> (Shadow.gg, STRATZ playback, Prolytics). The most-used artefact by pro analysts.</li>
+    <li><strong>Minimap heatmap</strong> per player, role, or game phase, as KDE or 2D histogram (StratIncon, OpenDota, STRATZ ward maps).</li>
+    <li><strong>Trajectory overlay</strong> with a time-coloured polyline.</li>
+    <li><strong>Zone grid choropleth</strong> of dwell time, using 11 hand zones per Drachen or the 12x12 grid per Tencent.</li>
+    <li><strong>Numbered camp or waypoint sequence</strong> on the minimap with sample counts (OP.GG and LeagueOfGraphs jungle paths).</li>
+    <li><strong>"Where were comparable pros at minute N"</strong> overlay and next-position win-rate heatmap (Doran's Lab).</li>
+    <li><strong>Within-team distance and hull-area line charts</strong> aligned to objective spawns.</li>
+    <li><strong>Two-player path comparison</strong> view.</li>
+    <li><strong>Event glyphs on the timeline</strong> for encounters, recalls, and inconsistencies.</li>
+  </ul>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>Rate</th><th>Enough for</th></tr></thead>
+      <tbody>
+        <tr><td>Riot Timeline API</td><td class="num">1 per 60 s</td><td>Coarse map side, proximity by minute. Not pathing.</td></tr>
+        <tr><td>Dota 2 replay file</td><td class="num">30 per s</td><td>Everything</td></tr>
+        <tr><td>Minimap CV (DeepLeague, pyLoL)</td><td class="num">1 to 2 per s</td><td>Dwell, rotations, proximity, hull, encounters, jungle routes</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="tools">
+  <h2>6. Existing tools survey</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Product</th><th>Positional data</th><th>Sampling</th><th>Visualisation</th><th>Capture</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://developer.riotgames.com/apis" target="_blank" rel="noopener noreferrer">Riot Timeline API</a></td><td>x,y per player</td><td>1 per min</td><td>raw</td><td>API</td></tr>
+        <tr><td><a href="https://www.doranslab.gg/tools/jungle-tool.html" target="_blank" rel="noopener noreferrer">Doran's Lab jungle tool</a></td><td>jungler x,y at minutes 2 to 6</td><td>1 per min</td><td>30x30 grid heatmap, win-rate heatmap, next-position scatter</td><td>API</td></tr>
+        <tr><td><a href="https://oracleselixir.com/" target="_blank" rel="noopener noreferrer">Oracle's Elixir</a> and Riot broadcast</td><td>proximity share</td><td>telemetry</td><td>scalar table</td><td>Riot esports feed</td></tr>
+        <tr><td><a href="https://op.gg/lol/champions/blitzcrank/jungle-paths/jungle" target="_blank" rel="noopener noreferrer">OP.GG</a>, LeagueOfGraphs</td><td>camp order</td><td>derived</td><td>numbered icons on minimap</td><td>API</td></tr>
+        <tr><td>Porofessor</td><td>ward spots</td><td>events</td><td>heatmap</td><td>API</td></tr>
+        <tr><td><a href="https://github.com/odota/core" target="_blank" rel="noopener noreferrer">OpenDota</a>, <a href="https://github.com/whanyu1212/gem-dota" target="_blank" rel="noopener noreferrer">gem-dota</a></td><td>lane_pos grid, lane_role</td><td>per second</td><td>small heatmap per player</td><td>replay parse</td></tr>
+        <tr><td><a href="https://stratz.com/" target="_blank" rel="noopener noreferrer">STRATZ</a></td><td>per-second positions, wards</td><td>per second</td><td>playback slider, ward heatmap</td><td>replay parse</td></tr>
+        <tr><td><a href="https://shadow.gg/league-of-legends.html" target="_blank" rel="noopener noreferrer">Shadow.gg</a></td><td>all players</td><td>per second</td><td>2D replay with event jump, video sync</td><td>replay or spectator</td></tr>
+        <tr><td><a href="https://grid.gg/open-access/" target="_blank" rel="noopener noreferrer">GRID</a>, LoL Esports Data Portal</td><td>all players</td><td>sub-second</td><td>partner UI position maps</td><td>official telemetry</td></tr>
+        <tr><td>PandaScore, DeepLeague CV</td><td>10 champions x,y</td><td>per frame</td><td>trajectories</td><td>video</td></tr>
+        <tr><td>王者营地 (HoK Camp)</td><td>movement routes</td><td>n/a</td><td>animated replay, own matches only</td><td>client</td></tr>
+        <tr><td>AoV, RPL</td><td>none</td><td>n/a</td><td>none</td><td>n/a</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="cv">
+  <h2>7. Minimap computer vision: what works</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Project</th><th>Method</th><th>Lesson</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://github.com/farzaa/deepleague" target="_blank" rel="noopener noreferrer">DeepLeague</a> (2018)</td><td>YOLOv2 on 100k auto-labeled 1080p minimap crops</td><td>Poor generalisation to unseen champions, heavy labeling. Do not copy the data strategy.</td></tr>
+        <tr><td><a href="https://nlml.github.io/neural-networks/getting-champion-coordinates-from-the-lol-minimap/" target="_blank" rel="noopener noreferrer">PandaScore</a> (2019)</td><td>Per-champion classifier plus ConvLSTM for temporal memory. GAN-generated minimap artefacts on raw portraits.</td><td>Realistic artefacts (rings, pings, overlaps) matter more than naive augmentation. ConvLSTM solves occlusion. Over 95% within 20 px.</td></tr>
+        <tr><td><a href="https://maknee.github.io/blog/2021/League-ML-Minimap-Detection1/" target="_blank" rel="noopener noreferrer">Maknee part 1</a></td><td>Pure OpenCV: HSV ring colour, contours, circle fit, template match</td><td>Zero-training baseline. Fragile to pings and overlaps.</td></tr>
+        <tr><td><a href="https://maknee.github.io/blog/2021/League-ML-Minimap-Detection2/" target="_blank" rel="noopener noreferrer">Maknee part 2</a></td><td>Faster R-CNN trained on <strong>purely synthetic</strong> minimaps rendered from icon assets. 150 hand-labeled frames for eval only.</td><td>AP@0.5 of 0.999, about 80% within 5 px, 20 to 30 fps. Zero real training labels.</td></tr>
+        <tr><td><a href="https://github.com/league-of-legends-replay-extractor/pyLoL" target="_blank" rel="noopener noreferrer">pyLoL</a></td><td>YOLOv12 on portraits from Riot CDN pasted onto minimap backgrounds. Drives the replay client at 40x, samples 1 per s, outputs JSON.</td><td><strong>Closest architectural template for this tool.</strong> 92.2% mAP, no manual labels.</td></tr>
+        <tr><td><a href="https://huggingface.co/datasets/boboyes/leagueoflegends-minimap" target="_blank" rel="noopener noreferrer">boboyes dataset</a> and YOLOv11</td><td>Synthetic generator: fog masks, recall and teleport effects, ping waves, viewport rectangle, JPEG noise, icon clustering</td><td>Good augmentation checklist.</td></tr>
+        <tr><td><a href="https://arxiv.org/html/2606.26970" target="_blank" rel="noopener noreferrer">Dota2-Vis</a> (2026)</td><td>YOLO11 on 2,477 hand-annotated 240x240 minimap crops from TI2025 VODs, both team perspectives</td><td>About 2.5k real labels gives F1 0.939. Names Honor of Kings as a target.</td></tr>
+        <tr><td><a href="https://arxiv.org/abs/1907.07854" target="_blank" rel="noopener noreferrer">Tencent HoK hero detection</a></td><td>Template-match health bars in the main view, CNN classifies the hero</td><td>Not minimap-based, but the "free localiser" trick is useful.</td></tr>
+        <tr><td><a href="https://github.com/YizhouFan/AOV-video-analyzer" target="_blank" rel="noopener noreferrer">AOV-video-analyzer</a></td><td>Hero tracking on AoV video</td><td>Proof that AoV video CV is feasible.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>No published minimap tracker exists for AoV or HoK.</strong> This would be the first public one.</p>
+
+  <h3>Technique ranking, simplest that works first</h3>
+  <div class="card">
+    <div class="step"><div class="n">1</div><p><strong>Colour ring plus template matching, zero training.</strong> HSV threshold on the team ring colour, contours, circle radius gate, then template match against the <strong>10 drafted heroes only</strong>, known from the loading screen. Gets most frames.</p></div>
+    <div class="step"><div class="n">2</div><p><strong>Small YOLO on synthetic minimap crops.</strong> Render AoV icon assets onto the minimap background with team rings, overlaps, pings, recall circles, death skulls, fog masks, JPEG noise and scale jitter. 20k to 50k images. Restrict inference classes to the 10 drafted heroes.</p></div>
+    <div class="step"><div class="n">3</div><p><strong>Temporal tracking.</strong> Per-hero constant-velocity Kalman filter with Hungarian assignment. Identity comes from the classifier, so no re-identification is needed. Hold the last position for a few seconds on a missed detection and flag low confidence.</p></div>
+    <div class="step"><div class="n">4</div><p><strong>Occlusion heuristic.</strong> If hero A vanishes while hero B is within one icon radius, assign A to B's position with an occluded flag.</p></div>
+    <div class="step"><div class="n">5</div><p><strong>Pixel to map coordinates.</strong> The minimap is axis-aligned, so an affine map (crop origin plus scale) suffices. Normalise to a unit square. Calibrate per video by template-matching fixed landmarks such as cores and towers. This also auto-detects the minimap crop box.</p></div>
+    <div class="step"><div class="n">6</div><p><strong>Game clock OCR.</strong> Crop the timer, threshold, read with Tesseract or PaddleOCR digit mode, or trust the offset from a detected 00:00.</p></div>
+  </div>
+
+  <h3>Pipeline sketch</h3>
+<pre><code>VOD (mp4 / YouTube)
+  - ffmpeg -vf "fps=2" frames/%06d.png
+    - locate minimap once per video (landmark template match) -> crop box
+      - per frame: crop -> 256x256 -> detector (YOLO) or OpenCV baseline
+        - per-hero Kalman + occlusion heuristic -> (t, hero, x, y, conf, occluded)
+          - Parquet/CSV: match_id, t_sec, team, hero, player, x_norm, y_norm, conf
+            - analytics: 2D histogram / KDE heatmaps per hero, role, phase
+                         zone dwell = sum dt per polygon
+                         within-team distance, hull area, proximity, encounters
+                         jungle route as camp sequence, recall events</code></pre>
+
+  <h3>AoV-specific concerns</h3>
+  <ul>
+    <li><strong>Minimap position.</strong> Top-left by default in-game and user-movable. Broadcast observer UI is usually bottom-left and enlarged. Auto-locate per video, never hardcode.</li>
+    <li><strong>Aspect ratios.</strong> 16:9, 19.5:9 and 20:9 phones, 4:3 iPad. Anchor the crop to the detected minimap size and train with scale jitter. Switch and PC emulator captures are cleanest.</li>
+    <li><strong>Fog of war.</strong> Player-perspective replays hide unseen enemies. Prefer observer or broadcast view, or record both team perspectives as Dota2-Vis did. Verify whether the Garena RoV replay offers a global view.</li>
+    <li><strong>Broadcast overlays.</strong> Sponsor bugs, replay wipes, picture-in-picture. Detect a valid minimap per frame via landmark match score, drop invalid frames, let the tracker bridge gaps. Broadcast icons may differ from in-game, so keep a separate template set.</li>
+    <li><strong>Icon clutter.</strong> Pings, recall circles, tower flashes, death skulls. Include all as distractors in synthetic data.</li>
+    <li><strong>Patch churn.</strong> Hero icons change with patches. Regenerate the synthetic set from new assets.</li>
+    <li><strong>Labeling budget.</strong> Synthetic training plus 200 to 500 hand-labeled real crops (CVAT or Roboflow, 2 to 3 hours) for validation and a short fine-tune.</li>
+  </ul>
+</section>
+
+<section id="plan">
+  <h2>8. Recommended adaptation for the RoV tool</h2>
+  <div class="grid two">
+    <div class="card"><h3>Data</h3><p>Minimap CV on RPL, AWC and AIC YouTube VODs at 2 fps. Later, screen-recorded scrim replays.</p></div>
+    <div class="card"><h3>Map model</h3><p>11 to 14 hand zones: 3 lanes x 3 segments, 4 jungle quadrants, river, Dark Slayer pit, Abyssal Dragon pit, 2 bases. Plus a 12x12 grid for heatmaps.</p></div>
+    <div class="card"><h3>Core metrics v1</h3><p>Zone dwell by 3-minute window, zone changes per minute, within-team distance, hull area, jungle and support proximity (threshold as fraction of map width, window 1:30 to 8:00), encounters, recall events, first-2-minute jungle route.</p></div>
+    <div class="card"><h3>UI v1</h3><p>Minimap plus timeline scrubber with event jump. Per-player heatmap toggles. Zone dwell table. Two-player path comparison.</p></div>
+  </div>
+  <h3>Build order</h3>
+  <div class="card">
+    <div class="step"><div class="n">1</div><p>OpenCV colour and template baseline on one RPL VOD. Verify crop, coordinate mapping and a jungler heatmap end to end.</p></div>
+    <div class="step"><div class="n">2</div><p>Synthetic renderer plus YOLO11n, swapped in behind the same interface.</p></div>
+    <div class="step"><div class="n">3</div><p>Kalman tracking, occlusion rule and validity gating. Then the coaching analytics and the UI.</p></div>
+  </div>
+</section>
+
+<section id="open">
+  <h2>9. Open questions to verify by hand</h2>
+  <ul>
+    <li>Does the current Garena RoV client's replay mode offer a global or observer camera with full vision?</li>
+    <li>Where exactly is the minimap in the RPL 2026 broadcast layout, and how often is it covered?</li>
+    <li>Can AoV hero minimap icons be scraped from the APK or a wiki for the synthetic renderer?</li>
+    <li>Does Abios Hermes HoK CV expose coordinates, and at what price?</li>
+  </ul>
+</section>
+
+<section id="refs">
+  <h2>10. References</h2>
+  <details>
+    <summary>Academic</summary>
+    <div class="body sources"><ul>
+      <li><a href="https://arxiv.org/abs/1603.07738" target="_blank" rel="noopener noreferrer">Drachen 2014, Skill-Based Differences in Spatio-Temporal Team Behavior in DotA 2</a></li>
+      <li><a href="https://ceur-ws.org/Vol-1842/paper_05.pdf" target="_blank" rel="noopener noreferrer">Rioult 2014 via Dota 2 ML literature review</a></li>
+      <li><a href="https://www.semanticscholar.org/paper/ceea76ce4e18f37e7316564e4145fec03eb0f20a" target="_blank" rel="noopener noreferrer">Schubert 2016, Esports Analytics Through Encounter Detection</a></li>
+      <li><a href="https://link.springer.com/chapter/10.1007/978-3-319-24589-8_9" target="_blank" rel="noopener noreferrer">Eggert 2015, Classification of Player Roles in Dota 2</a></li>
+      <li><a href="https://arxiv.org/abs/2006.11199" target="_blank" rel="noopener noreferrer">Ahmad 2020, Modeling Individual and Team Behavior through Spatio-temporal Analysis</a></li>
+      <li><a href="https://arxiv.org/abs/2503.09060" target="_blank" rel="noopener noreferrer">StratIncon Detector 2025</a></li>
+      <li><a href="https://www.sloansportsconference.com/research-papers/an-open-sourced-optical-tracking-and-advanced-esports-analytics-platform-for-league-of-legends" target="_blank" rel="noopener noreferrer">Maymin 2020, Optical Tracking Platform for LoL</a></li>
+      <li><a href="https://arxiv.org/abs/1812.07887" target="_blank" rel="noopener noreferrer">Wu 2019, Hierarchical Macro Strategy Model (Tencent, HoK)</a></li>
+      <li><a href="https://arxiv.org/abs/2209.08483" target="_blank" rel="noopener noreferrer">Honor of Kings Arena (NeurIPS 2022)</a></li>
+      <li><a href="https://arxiv.org/abs/2408.10556" target="_blank" rel="noopener noreferrer">Hokoff (2023)</a></li>
+      <li><a href="https://arxiv.org/abs/2008.06313" target="_blank" rel="noopener noreferrer">TSSTN, real-time win prediction for HoK</a></li>
+      <li><a href="https://arxiv.org/pdf/2011.12692" target="_blank" rel="noopener noreferrer">JueWu papers</a></li>
+      <li><a href="https://arxiv.org/html/2606.26970" target="_blank" rel="noopener noreferrer">Dota2-Vis (2026)</a></li>
+      <li><a href="https://arxiv.org/abs/1907.07854" target="_blank" rel="noopener noreferrer">Efficient Hero Detection and Recognition for Honor of Kings</a></li>
+      <li><a href="https://www.researchgate.net/publication/402659312" target="_blank" rel="noopener noreferrer">Synthetic-to-Real Transfer for LoL Minimap Detection</a></li>
+    </ul></div>
+  </details>
+  <details>
+    <summary>Tools and products</summary>
+    <div class="body sources"><ul>
+      <li><a href="https://developer.riotgames.com/apis" target="_blank" rel="noopener noreferrer">Riot Match Timeline API</a></li>
+      <li><a href="https://www.doranslab.gg/tools/jungle-tool.html" target="_blank" rel="noopener noreferrer">Doran's Lab jungle tool</a></li>
+      <li><a href="https://lolesports.com/article/dev-diary-changes-to-proximity/bltc57ec217dbf2a162" target="_blank" rel="noopener noreferrer">LoL Esports dev diary on proximity</a></li>
+      <li><a href="https://oracleselixir.com/" target="_blank" rel="noopener noreferrer">Oracle's Elixir</a></li>
+      <li><a href="https://op.gg/lol/champions/blitzcrank/jungle-paths/jungle" target="_blank" rel="noopener noreferrer">OP.GG jungle paths</a></li>
+      <li><a href="https://github.com/odota/core" target="_blank" rel="noopener noreferrer">OpenDota core</a></li>
+      <li><a href="https://github.com/whanyu1212/gem-dota" target="_blank" rel="noopener noreferrer">gem-dota</a></li>
+      <li><a href="https://stratz.com/" target="_blank" rel="noopener noreferrer">STRATZ</a></li>
+      <li><a href="https://github.com/skadistats/clarity" target="_blank" rel="noopener noreferrer">Clarity replay parser</a></li>
+      <li><a href="https://shadow.gg/league-of-legends.html" target="_blank" rel="noopener noreferrer">Shadow.gg</a></li>
+      <li><a href="https://grid.gg/open-access/" target="_blank" rel="noopener noreferrer">GRID Open Access</a></li>
+      <li><a href="https://www.prolytics.lol/" target="_blank" rel="noopener noreferrer">Prolytics</a></li>
+      <li><a href="https://github.com/mabotkin/jungler-tracking" target="_blank" rel="noopener noreferrer">jungler-tracking Markov model</a></li>
+    </ul></div>
+  </details>
+  <details>
+    <summary>Computer vision projects</summary>
+    <div class="body sources"><ul>
+      <li><a href="https://github.com/farzaa/deepleague" target="_blank" rel="noopener noreferrer">DeepLeague</a></li>
+      <li><a href="https://nlml.github.io/neural-networks/getting-champion-coordinates-from-the-lol-minimap/" target="_blank" rel="noopener noreferrer">PandaScore minimap coordinates</a></li>
+      <li><a href="https://maknee.github.io/blog/2021/League-ML-Minimap-Detection2/" target="_blank" rel="noopener noreferrer">Maknee minimap detection</a></li>
+      <li><a href="https://github.com/league-of-legends-replay-extractor/pyLoL" target="_blank" rel="noopener noreferrer">pyLoL</a></li>
+      <li><a href="https://huggingface.co/datasets/boboyes/leagueoflegends-minimap" target="_blank" rel="noopener noreferrer">boboyes synthetic minimap dataset</a></li>
+      <li><a href="https://github.com/Quinntana/LOL_Minimap_Tracker" target="_blank" rel="noopener noreferrer">LOL_Minimap_Tracker</a></li>
+      <li><a href="https://github.com/Steeeephen/loltracker" target="_blank" rel="noopener noreferrer">LAVA loltracker</a></li>
+      <li><a href="https://github.com/YizhouFan/AOV-video-analyzer" target="_blank" rel="noopener noreferrer">AOV-video-analyzer</a></li>
+    </ul></div>
+  </details>
+  <details>
+    <summary>AoV and HoK data</summary>
+    <div class="body sources"><ul>
+      <li><a href="https://github.com/tencent-ailab/hok_env" target="_blank" rel="noopener noreferrer">hok_env</a></li>
+      <li><a href="https://github.com/tencent-ailab/hokoff" target="_blank" rel="noopener noreferrer">hokoff</a></li>
+      <li><a href="https://pvp.qq.com/webplat/info/news_version3/15592/24418/24987/24988/m18519/201901/791316.shtml" target="_blank" rel="noopener noreferrer">王者营地 animated match review announcement</a></li>
+      <li><a href="https://blog.csdn.net/qq_39046854/article/details/118499126" target="_blank" rel="noopener noreferrer">Camp private API write-up (CSDN)</a></li>
+      <li><a href="https://www.zhihu.com/question/359973567/answer/1419490850" target="_blank" rel="noopener noreferrer">abc replay file discussion (Zhihu)</a></li>
+      <li><a href="https://abiosgaming.com/docs/en/content/hermes/computer-vision/hok" target="_blank" rel="noopener noreferrer">Abios Hermes HoK computer vision</a></li>
+      <li><a href="https://www.youtube.com/@GarenaRoVThailand" target="_blank" rel="noopener noreferrer">Garena RoV Thailand YouTube</a></li>
+      <li><a href="https://garena.live/RoVTH/vod" target="_blank" rel="noopener noreferrer">garena.live RoV VOD</a></li>
+      <li><a href="https://www.youtube.com/@aovesports1084" target="_blank" rel="noopener noreferrer">AoV Esports YouTube</a></li>
+      <li><a href="https://www.huya.com/660002" target="_blank" rel="noopener noreferrer">KPL on Huya</a></li>
+      <li><a href="https://pvp.qq.com/matchdata/index.html" target="_blank" rel="noopener noreferrer">KPL data portal</a></li>
+      <li><a href="https://liquipedia.net/honorofkings/RoV_Pro_League" target="_blank" rel="noopener noreferrer">Liquipedia RoV Pro League</a></li>
+      <li><a href="https://intl.cloud.tencent.com/products/ace" target="_blank" rel="noopener noreferrer">Tencent ACE anti-cheat</a></li>
+      <li><a href="https://samurai-gamers.com/arena-of-valor/the-in-game-screen/" target="_blank" rel="noopener noreferrer">AoV in-game HUD guide</a></li>
+    </ul></div>
+  </details>
+</section>
+
+</main>
+</body>
+</html>
