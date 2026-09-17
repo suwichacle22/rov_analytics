@@ -13,19 +13,82 @@ import cv2
 import numpy as np
 
 
-def download(url: str, out_path: str | Path, max_height: int = 1080) -> Path:
-    """Download a video with yt-dlp into a single mp4 file at up to `max_height`."""
+def parse_timestamp(text: str) -> float:
+    """'1:23:45', '23:45', '45', or '5025.5' -> seconds."""
+    parts = text.strip().split(":")
+    if len(parts) > 3:
+        raise ValueError(f"bad timestamp: {text}")
+    seconds = 0.0
+    for p in parts:
+        seconds = seconds * 60 + float(p)
+    return seconds
+
+
+def ffmpeg_path() -> str:
+    """Directory holding an `ffmpeg` binary, so users do not need to install ffmpeg.
+
+    imageio-ffmpeg ships the binary under a versioned name. yt-dlp only recognises a file
+    called `ffmpeg`, so copy it once into a cache directory under that name.
+    """
+    import shutil
+
+    import imageio_ffmpeg
+
+    src = Path(imageio_ffmpeg.get_ffmpeg_exe())
+    cache = Path.home() / ".cache" / "rov_analytics" / "ffmpeg"
+    cache.mkdir(parents=True, exist_ok=True)
+    dst = cache / ("ffmpeg.exe" if src.suffix.lower() == ".exe" else "ffmpeg")
+    if not dst.exists() or dst.stat().st_size != src.stat().st_size:
+        shutil.copyfile(src, dst)
+        dst.chmod(0o755)
+    return str(cache)
+
+
+def download(
+    url: str,
+    out_path: str | Path,
+    max_height: int = 1080,
+    start_sec: float | None = None,
+    end_sec: float | None = None,
+    video_only: bool = True,
+) -> Path:
+    """Download a video with yt-dlp into a single mp4 file at up to `max_height`.
+
+    Give `start_sec` and `end_sec` to fetch only that part of a long VOD. The cut lands on
+    the nearest keyframe before `start_sec`, so the clip may begin a few seconds early.
+    Audio is skipped by default because the tracker never uses it.
+    """
+    import os
+
     import yt_dlp  # imported lazily so the rest of the package works offline
+    from yt_dlp.utils import download_range_func
+
+    # yt-dlp's range downloader checks PATH for ffmpeg, not only `ffmpeg_location`.
+    ffdir = ffmpeg_path()
+    if ffdir not in os.environ.get("PATH", ""):
+        os.environ["PATH"] = ffdir + os.pathsep + os.environ.get("PATH", "")
 
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    if video_only:
+        fmt = f"bestvideo[height<={max_height}][ext=mp4]/bestvideo[height<={max_height}]/best[height<={max_height}]"
+    else:
+        fmt = f"bestvideo[height<={max_height}][ext=mp4]+bestaudio[ext=m4a]/best[height<={max_height}][ext=mp4]/best"
     opts = {
-        "format": f"bestvideo[height<={max_height}][ext=mp4]+bestaudio[ext=m4a]/best[height<={max_height}][ext=mp4]/best",
+        "format": fmt,
         "outtmpl": str(out_path.with_suffix("")) + ".%(ext)s",
         "merge_output_format": "mp4",
         "noplaylist": True,
         "quiet": False,
+        "ffmpeg_location": ffdir,
     }
+    if start_sec is not None or end_sec is not None:
+        s = start_sec or 0.0
+        e = end_sec if end_sec is not None else float("inf")
+        if e <= s:
+            raise ValueError("--to must be after --from")
+        opts["download_ranges"] = download_range_func(None, [(s, e)])
+        opts["force_keyframes_at_cuts"] = False
     with yt_dlp.YoutubeDL(opts) as ydl:
         ydl.download([url])
     final = out_path.with_suffix(".mp4")

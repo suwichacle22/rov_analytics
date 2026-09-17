@@ -19,10 +19,14 @@ python -m uv run rov --help
 
 **1. Get the video.** Either paste a YouTube link or use your own recording.
 
+Tournament VODs are often a whole broadcast day, many hours long. Do not download all of it. Find the game in the YouTube player, note when it starts and ends, and download only that range. ffmpeg is bundled, nothing to install.
+
 ```
-python -m uv run rov download "https://www.youtube.com/watch?v=..." -o data/videos/rpl_g1.mp4
+python -m uv run rov download "https://www.youtube.com/watch?v=..." -o data/videos/rpl_g1.mp4 --from 1:23:40 --to 1:45:30
 python -m uv run rov info data/videos/rpl_g1.mp4
 ```
+
+Audio is skipped by default. A 20-minute 1080p game is roughly 300 to 600 MB. The clip may begin a few seconds before `--from` because the cut lands on a keyframe. Leave `--from` and `--to` off to download the whole video.
 
 **2. Calibrate the source once per broadcast layout.** Opens a window. Drag a box around the minimap, then around one hero icon, then click one blue ring pixel and one red ring pixel. Saved as a JSON you reuse for every video from that tournament.
 

@@ -12,14 +12,18 @@ import cv2
 from . import analytics, pipeline, render
 from .calibrate import calibrate_interactive, crop_template_interactive, save_template
 from .config import SourceConfig
-from .video import crop_box, download, probe, read_frame_at
+from .video import crop_box, download, parse_timestamp, probe, read_frame_at
 from .zones import ZoneIndex, default_zones, load_zones, save_zones
 
 DEFAULT_TEMPLATES = "templates"
 
 
 def cmd_download(a: argparse.Namespace) -> None:
-    out = download(a.url, a.out, max_height=a.max_height)
+    start = parse_timestamp(a.start) if a.start else None
+    end = parse_timestamp(a.end) if a.end else None
+    if (start is not None) != (end is not None):
+        raise ValueError("give both --from and --to, or neither")
+    out = download(a.url, a.out, max_height=a.max_height, start_sec=start, end_sec=end, video_only=not a.audio)
     info = probe(out)
     print(f"saved {out}  ({info.width}x{info.height}, {info.fps:.2f} fps, {info.duration_sec/60:.1f} min)")
 
@@ -110,6 +114,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("url")
     s.add_argument("-o", "--out", required=True, help="output path, e.g. data/videos/rpl_g1.mp4")
     s.add_argument("--max-height", type=int, default=1080)
+    s.add_argument("--from", dest="start", default=None, help="clip start in the VOD, e.g. 1:23:45 (use with --to)")
+    s.add_argument("--to", dest="end", default=None, help="clip end in the VOD, e.g. 1:45:00")
+    s.add_argument("--audio", action="store_true", help="keep audio (off by default, the tracker does not need it)")
     s.set_defaults(func=cmd_download)
 
     s = sub.add_parser("info", help="print video resolution, fps and duration")
