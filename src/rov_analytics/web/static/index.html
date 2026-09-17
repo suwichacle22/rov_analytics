@@ -47,6 +47,18 @@
   .tpl-preview { display: flex; align-items: center; gap: 10px; }
   .tpl-preview img { image-rendering: pixelated; border: 1px solid var(--border); border-radius: 4px; }
   a { color: var(--text-strong); }
+  #playerWrap { position: relative; width: 100%; aspect-ratio: 16 / 9; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  #playerWrap iframe, #player { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .tp { display: flex; flex-direction: column; gap: 6px; }
+  .tp-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--text-muted); }
+  .tp-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .tp-row input { width: 56px; text-align: center; font-size: 16px; font-variant-numeric: tabular-nums; padding: 8px 4px; -moz-appearance: textfield; }
+  .tp-row input::-webkit-outer-spin-button, .tp-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .tp-row .sep { color: var(--text-muted); font-weight: 700; }
+  .nudge { display: flex; gap: 4px; margin-left: auto; }
+  .nudge button, button.link { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 12px; font-weight: 600; }
+  .nudge button:hover, button.link:hover { color: var(--text-strong); border-color: var(--text-muted); }
+  button.link { padding: 2px 8px; }
   details summary { cursor: pointer; color: var(--text-strong); font-weight: 700; }
   code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
 </style>
@@ -66,10 +78,27 @@
         <label>YouTube link or local file path
           <input id="url" placeholder="https://www.youtube.com/watch?v=..." value="">
         </label>
-        <div class="row">
-          <label>Clock 0:00 at (VOD time)<input id="from" placeholder="49:57"></label>
-          <label>Game ends at<input id="to" placeholder="1:06:19"></label>
+        <div id="playerWrap" hidden><div id="player"></div></div>
+        <input id="from" type="hidden"><input id="to" type="hidden">
+        <div class="tp" data-for="from">
+          <div class="tp-head"><span>Clock 0:00 at (VOD time)</span><button type="button" class="link usePlayer">use player time</button></div>
+          <div class="tp-row">
+            <input type="number" class="h" min="0" max="23" placeholder="h" aria-label="hours"><span class="sep">:</span>
+            <input type="number" class="m" min="0" max="59" placeholder="mm" aria-label="minutes"><span class="sep">:</span>
+            <input type="number" class="s" min="0" max="59" placeholder="ss" aria-label="seconds">
+            <div class="nudge"><button type="button" data-d="-5">-5s</button><button type="button" data-d="-1">-1s</button><button type="button" data-d="1">+1s</button><button type="button" data-d="5">+5s</button></div>
+          </div>
         </div>
+        <div class="tp" data-for="to">
+          <div class="tp-head"><span>Game ends at</span><button type="button" class="link usePlayer">use player time</button></div>
+          <div class="tp-row">
+            <input type="number" class="h" min="0" max="23" placeholder="h" aria-label="hours"><span class="sep">:</span>
+            <input type="number" class="m" min="0" max="59" placeholder="mm" aria-label="minutes"><span class="sep">:</span>
+            <input type="number" class="s" min="0" max="59" placeholder="ss" aria-label="seconds">
+            <div class="nudge"><button type="button" data-d="-5">-5s</button><button type="button" data-d="-1">-1s</button><button type="button" data-d="1">+1s</button><button type="button" data-d="5">+5s</button></div>
+          </div>
+        </div>
+        <div class="muted" style="font-size:12px">Scrub the player to the moment the in-game clock shows 0:00 and press "use player time". Nudge buttons move the player too, so you can check the frame.</div>
         <div class="row">
           <button id="btnDownload" class="secondary">Fetch clip</button>
           <select id="videos" title="Previously fetched clips"></select>
@@ -147,6 +176,58 @@
 
 <script>
 const $ = id => document.getElementById(id);
+
+// ---- time pickers: h/m/s fields backed by hidden #from / #to inputs, plus a YouTube player ----
+let player = null, playerReady = false;
+function ytId(url) { const m = (url || '').match(/(?:v=|youtu\.be\/|shorts\/|live\/)([A-Za-z0-9_-]{11})/); return m ? m[1] : null; }
+function pickerSecs(tp) {
+  const H = tp.querySelector('.h'), M = tp.querySelector('.m'), S = tp.querySelector('.s');
+  if (H.value === '' && M.value === '' && S.value === '') return null;
+  return (+H.value || 0) * 3600 + (+M.value || 0) * 60 + (+S.value || 0);
+}
+function setPicker(tp, secs) {
+  secs = Math.max(0, Math.round(secs));
+  tp.querySelector('.h').value = Math.floor(secs / 3600);
+  tp.querySelector('.m').value = Math.floor(secs % 3600 / 60);
+  tp.querySelector('.s').value = secs % 60;
+  syncPicker(tp);
+}
+function syncPicker(tp) {
+  const v = pickerSecs(tp);
+  $(tp.dataset.for).value = v == null ? '' : `${Math.floor(v / 3600)}:${String(Math.floor(v % 3600 / 60)).padStart(2, '0')}:${String(v % 60).padStart(2, '0')}`;
+}
+document.querySelectorAll('.tp').forEach(tp => {
+  const fields = [tp.querySelector('.h'), tp.querySelector('.m'), tp.querySelector('.s')];
+  fields.forEach((inp, i) => {
+    inp.addEventListener('input', () => syncPicker(tp));
+    inp.addEventListener('focus', () => inp.select());
+    inp.addEventListener('keyup', e => { if (/^\d$/.test(e.key) && inp.value.length >= 2 && fields[i + 1]) fields[i + 1].focus(); });
+  });
+  tp.querySelectorAll('.nudge button').forEach(b => b.onclick = () => {
+    const v = (pickerSecs(tp) ?? 0) + (+b.dataset.d);
+    setPicker(tp, v);
+    if (playerReady) player.seekTo(v, true);
+  });
+  tp.querySelector('.usePlayer').onclick = () => {
+    if (playerReady) setPicker(tp, player.getCurrentTime()); else tp.querySelector('.tp-head span').textContent += ' (paste a YouTube link first)';
+  };
+});
+function loadPlayer() {
+  const id = ytId($('url').value);
+  $('playerWrap').hidden = !id;
+  if (!id) return;
+  const make = () => {
+    if (player) { player.cueVideoById(id); return; }
+    player = new YT.Player('player', { videoId: id, playerVars: { rel: 0, modestbranding: 1 }, events: { onReady: () => { playerReady = true; } } });
+  };
+  if (window.YT && YT.Player) make();
+  else {
+    window.onYouTubeIframeAPIReady = make;
+    if (!document.getElementById('ytapi')) { const s = document.createElement('script'); s.id = 'ytapi'; s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); }
+  }
+}
+$('url').addEventListener('change', loadPlayer);
+$('url').addEventListener('paste', () => setTimeout(loadPlayer, 50));
 const fmt = s => `${Math.floor(Math.max(0,s)/60)}:${String(Math.floor(Math.max(0,s)%60)).padStart(2,'0')}`;
 let currentVideo = "";
 
@@ -173,7 +254,7 @@ async function loadVideos() {
 }
 $('source').onchange = loadTemplates;
 let videoMeta = {};
-$('videos').onchange = () => { const v = $('videos').value; if (v) { $('url').value = v; currentVideo = v; $('from').value=''; $('to').value=''; if (videoMeta[v] != null) $('gameStart').value = videoMeta[v]; } };
+$('videos').onchange = () => { const v = $('videos').value; if (v) { $('url').value = v; currentVideo = v; document.querySelectorAll('.tp input').forEach(i => i.value = ''); $('from').value = ''; $('to').value = ''; $('playerWrap').hidden = true; if (videoMeta[v] != null) $('gameStart').value = videoMeta[v]; } };
 
 function listen(jobId, handlers) {
   const es = new EventSource(`/api/jobs/${jobId}/events`);
