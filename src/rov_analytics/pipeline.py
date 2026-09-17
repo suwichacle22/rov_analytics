@@ -11,7 +11,7 @@ from .calibrate import template_path
 from .config import SourceConfig
 from .detect import IconDetector, load_template
 from .track import Tracker
-from .video import crop_box, iter_frames, read_frame_at
+from .video import clean_background, crop_box, iter_frames, read_frame_at
 from .zones import load_zones
 
 
@@ -74,9 +74,22 @@ def render_outputs(
 ) -> dict[str, Path]:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    background = crop_box(read_frame_at(video, background_sec), source.minimap_box)
+    valid_rows = [r for r in rows if r.x_norm is not None]
+    if valid_rows:
+        v0, v1 = min(r.video_sec for r in valid_rows), max(r.video_sec for r in valid_rows)
+        background = clean_background(video, source.minimap_box, start_sec=max(background_sec, v0), end_sec=v1)
+    else:
+        background = crop_box(read_frame_at(video, background_sec), source.minimap_box)
     grid = analytics.heatmap_grid(rows, bins=bins)
-    heat = render.heatmap_image(background, grid)
+    valid = [r for r in rows if r.x_norm is not None]
+    if rows:
+        who = rows[0].player or rows[0].hero
+        t0, t1 = min(r.game_sec for r in rows), max(r.game_sec for r in rows)
+        title = f"{who}  ({rows[0].hero}, {rows[0].side})"
+        subtitle = f"{rows[0].match_id}   {int(t0)//60}:{int(t0)%60:02d} - {int(t1)//60}:{int(t1)%60:02d}   {len(valid)/2:.0f}s tracked"
+    else:
+        title = subtitle = ""
+    heat = render.heatmap_image(background, grid, title=title, subtitle=subtitle)
     path = render.path_image(background, rows)
     if stem is None:
         stem = f"{rows[0].match_id}_{rows[0].hero.lower()}" if rows else Path(video).stem

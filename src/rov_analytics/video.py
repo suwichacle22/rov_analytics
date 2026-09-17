@@ -190,6 +190,16 @@ def iter_frames(
         cap.release()
 
 
+def clean_background(path: str | Path, box: list[int], samples: int = 15,
+                     start_sec: float = 0.0, end_sec: float | None = None) -> np.ndarray:
+    """Minimap with the moving icons removed: per-pixel median of frames spread over the game."""
+    info = probe(path)
+    end = end_sec if end_sec is not None else info.duration_sec
+    times = np.linspace(start_sec, max(start_sec, end - 1), samples)
+    crops = [crop_box(read_frame_at(path, float(t)), box) for t in times]
+    return np.median(np.stack(crops), axis=0).astype(np.uint8)
+
+
 def crop_box(img: np.ndarray, box: list[int]) -> np.ndarray:
     x, y, w, h = box
     return img[y : y + h, x : x + w]

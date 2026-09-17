@@ -10,20 +10,62 @@ import numpy as np
 from .analytics import TrackRow
 
 
-def heatmap_image(background: np.ndarray, grid: np.ndarray, blur: int = 9, alpha: float = 0.85) -> np.ndarray:
-    """Overlay a brightness heatmap on a minimap crop. Grey background, white where the hero was."""
+def heatmap_image(
+    background: np.ndarray,
+    grid: np.ndarray,
+    blur: int = 21,
+    scale: int = 2,
+    title: str = "",
+    subtitle: str = "",
+    clip_percentile: float = 97.0,
+) -> np.ndarray:
+    """Temperature-style heatmap over the minimap.
+
+    Uses the inferno ramp (dark purple -> orange -> yellow): it reads as heat, is ordered
+    in lightness, and stays legible for colourblind viewers. Cells the hero never visited
+    are fully transparent so the map shows through. Includes a colour bar and a title.
+    """
     h, w = background.shape[:2]
-    heat = cv2.resize(grid, (w, h), interpolation=cv2.INTER_LINEAR)
-    if blur > 0:
-        k = blur if blur % 2 == 1 else blur + 1
-        heat = cv2.GaussianBlur(heat, (k, k), 0)
+    W, H = w * scale, h * scale
+    bg = cv2.resize(background, (W, H), interpolation=cv2.INTER_CUBIC)
+    # Dim and desaturate the map so the heat is the only strong colour.
+    grey = cv2.cvtColor(cv2.cvtColor(bg, cv2.COLOR_BGR2GRAY), cv2.COLOR_GRAY2BGR)
+    base = (bg.astype(np.float32) * 0.35 + grey.astype(np.float32) * 0.25)
+
+    heat = cv2.resize(grid, (W, H), interpolation=cv2.INTER_LINEAR)
+    k = blur * scale
+    k = k if k % 2 == 1 else k + 1
+    heat = cv2.GaussianBlur(heat, (k, k), 0)
     if heat.max() > 0:
-        # Log scaling so a few very hot cells (base, a long fight) do not hide everything else.
-        heat = np.log1p(heat) / np.log1p(heat.max())
-    base = cv2.cvtColor(cv2.cvtColor(background, cv2.COLOR_BGR2GRAY), cv2.COLOR_GRAY2BGR).astype(np.float32) * 0.35
-    glow = np.stack([heat * 255] * 3, axis=-1)
-    out = base * (1 - alpha * heat[..., None]) + glow * alpha
-    return np.clip(out, 0, 255).astype(np.uint8)
+        # Clip at a high percentile of the visited cells so one long stand (a siege, waiting
+        # in base) saturates instead of flattening the rest of the map, then sqrt so
+        # mid-density areas stay visible.
+        visited = heat[heat > 0]
+        cap = float(np.percentile(visited, clip_percentile)) if visited.size else float(heat.max())
+        heat = np.sqrt(np.clip(heat / max(cap, 1e-6), 0.0, 1.0))
+
+    colour = cv2.applyColorMap((heat * 255).astype(np.uint8), cv2.COLORMAP_INFERNO).astype(np.float32)
+    alpha = np.clip(heat * 1.6, 0.0, 0.92)[..., None]
+    body = base * (1 - alpha) + colour * alpha
+    body = np.clip(body, 0, 255).astype(np.uint8)
+
+    # Layout: title strip on top, colour bar on the right.
+    top = 34 if (title or subtitle) else 0
+    bar_w, pad = 18, 44
+    canvas = np.full((H + top, W + bar_w + pad, 3), 16, dtype=np.uint8)
+    canvas[top : top + H, :W] = body
+    if title:
+        cv2.putText(canvas, title, (6, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+    if subtitle:
+        cv2.putText(canvas, subtitle, (6, 29), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (180, 180, 180), 1, cv2.LINE_AA)
+    ramp = np.linspace(255, 0, H, dtype=np.uint8).reshape(-1, 1)
+    bar = cv2.applyColorMap(np.repeat(ramp, bar_w, axis=1), cv2.COLORMAP_INFERNO)
+    x0 = W + 10
+    canvas[top : top + H, x0 : x0 + bar_w] = bar
+    cv2.putText(canvas, "more", (x0 - 2, top + 12), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (230, 230, 230), 1, cv2.LINE_AA)
+    cv2.putText(canvas, "less", (x0 - 2, top + H - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (230, 230, 230), 1, cv2.LINE_AA)
+    cv2.putText(canvas, "time", (x0 + bar_w + 3, top + H // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (200, 200, 200), 1, cv2.LINE_AA)
+    return canvas
 
 
 def path_image(background: np.ndarray, rows: list[TrackRow]) -> np.ndarray:

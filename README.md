@@ -73,7 +73,7 @@ Outputs per hero:
 
 - `data/tracks/<match>_<hero>.csv`, one row per half second: game time, x and y in 0..1, zone, match score, status.
 - `data/tracks/<match>_<hero>.summary.json`: coverage, distance, zone changes per minute, dwell seconds per zone.
-- `data/tracks/<match>_<hero>_heatmap.png` and `_path.png`.
+- `data/tracks/<match>_<hero>_heatmap.png`: temperature heatmap (inferno ramp, transparent where never visited) over a clean minimap built from the median of many frames, with a colour bar. `_path.png` is the full trajectory.
 - The debug video shows the minimap with a circle on the detected position. White circle means detected, red means held from the previous frame. Watch this first when something looks wrong.
 
 **6. Re-render for a time window** without re-tracking:
@@ -153,4 +153,4 @@ data/           videos and outputs (ignored by git)
 - Read the game clock by OCR so `--start` is found automatically.
 - Detect when the minimap is covered by an overlay instead of relying on low scores.
 - Swap template matching for a small YOLO trained on synthetic minimaps once real broadcasts show its limits.
-- Web dashboard (TanStack Start plus Convex) with a timeline scrubber, heatmap filters and two-player comparison.
+- Web app: paste a YouTube link, type start and end time and the player to focus, and watch the heatmap build up in real time as the video is processed. Then a dashboard (TanStack Start plus Convex) with a timeline scrubber, heatmap filters and two-player comparison.
