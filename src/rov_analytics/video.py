@@ -5,7 +5,8 @@ Frame reads go through the bundled ffmpeg (GPU decode when available) with an Op
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import json
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Iterator
 
@@ -44,6 +45,36 @@ def ffmpeg_path() -> str:
     return str(cache)
 
 
+_JS_RUNTIMES = {"deno": {"path": None}, "node": {"path": None}, "bun": {"path": None}}
+
+
+@dataclass
+class ClipMeta:
+    """What was actually fetched for a time range. Saved next to the clip as `<clip>.meta.json`."""
+
+    url: str
+    format_id: str
+    requested_start: float
+    requested_end: float
+    actual_start: float     # the clip's first frame is at this VOD second (a segment boundary <= requested)
+    actual_end: float
+
+    @property
+    def start_offset(self) -> float:
+        """Seconds into the clip where the requested start lands."""
+        return self.requested_start - self.actual_start
+
+    def save(self, clip: Path) -> None:
+        clip.with_suffix(".meta.json").write_text(json.dumps(asdict(self), indent=2), encoding="utf-8")
+
+    @classmethod
+    def load(cls, clip: str | Path) -> "ClipMeta | None":
+        p = Path(clip).with_suffix(".meta.json")
+        if not p.exists():
+            return None
+        return cls(**json.loads(p.read_text(encoding="utf-8")))
+
+
 def download(
     url: str,
     out_path: str | Path,
@@ -51,17 +82,28 @@ def download(
     start_sec: float | None = None,
     end_sec: float | None = None,
     video_only: bool = True,
+    progress: "callable | None" = None,
 ) -> Path:
     """Download a video with yt-dlp into a single mp4 file at up to `max_height`.
 
-    Give `start_sec` and `end_sec` to fetch only that part of a long VOD. The cut lands on
-    the nearest keyframe before `start_sec`, so the clip may begin a few seconds early.
-    Audio is skipped by default because the tracker never uses it.
+    With `start_sec` and `end_sec`, only that part of the VOD is fetched. YouTube mp4
+    streams carry a segment index, so the exact bytes for the range are pulled with several
+    parallel connections (about 10x faster than streaming through ffmpeg, which YouTube
+    throttles). The clip starts at the segment boundary at or before `start_sec`; the exact
+    offset is written to `<clip>.meta.json`. Falls back to yt-dlp's ffmpeg section download
+    when the fast path is not possible. Audio is skipped by default.
     """
     import os
 
     import yt_dlp  # imported lazily so the rest of the package works offline
     from yt_dlp.utils import download_range_func
+
+    out_path = Path(out_path)
+    if start_sec is not None and end_sec is not None and url.startswith("http"):
+        try:
+            return _download_range_fast(url, out_path, start_sec, end_sec, max_height, progress)
+        except Exception as e:  # noqa: BLE001
+            print(f"fast range download not possible ({e}); falling back to ffmpeg section download")
 
     # yt-dlp's range downloader checks PATH for ffmpeg, not only `ffmpeg_location`.
     ffdir = ffmpeg_path()
@@ -81,6 +123,8 @@ def download(
         "noplaylist": True,
         "quiet": False,
         "ffmpeg_location": ffdir,
+        # yt-dlp needs a JavaScript runtime for YouTube's challenge; accept any installed one.
+        "js_runtimes": _JS_RUNTIMES,
     }
     if start_sec is not None or end_sec is not None:
         s = start_sec or 0.0
@@ -97,6 +141,123 @@ def download(
         if not candidates:
             raise FileNotFoundError(f"yt-dlp finished but no file found for {out_path}")
         final = candidates[0]
+    return final
+
+
+def _parse_sidx(head: bytes) -> tuple[int, int, int, list[tuple[int, int]]] | None:
+    """Find the sidx box in the first bytes of a DASH mp4.
+
+    Returns (timescale, earliest_presentation_time, first_segment_byte_offset, [(size, duration), ...]).
+    """
+    import struct
+
+    pos = 0
+    while pos + 8 <= len(head):
+        size, typ = struct.unpack(">I4s", head[pos : pos + 8])
+        hdr = 8
+        if size == 1:
+            size = struct.unpack(">Q", head[pos + 8 : pos + 16])[0]
+            hdr = 16
+        if size == 0:
+            return None
+        if typ == b"sidx":
+            if pos + size > len(head):
+                return None
+            body = head[pos + hdr : pos + size]
+            version = body[0]
+            timescale = struct.unpack(">I", body[8:12])[0]
+            if version == 0:
+                ept, first_offset = struct.unpack(">II", body[12:20])
+                q = 20
+            else:
+                ept, first_offset = struct.unpack(">QQ", body[12:28])
+                q = 28
+            ref_count = struct.unpack(">H", body[q + 2 : q + 4])[0]
+            q += 4
+            segs = []
+            for _ in range(ref_count):
+                a, dur, _sap = struct.unpack(">III", body[q : q + 12])
+                q += 12
+                segs.append((a & 0x7FFFFFFF, dur))
+            return timescale, ept, pos + size + first_offset, segs
+        pos += size
+    return None
+
+
+def _download_range_fast(url: str, out_path: Path, start_sec: float, end_sec: float,
+                         max_height: int, progress: "callable | None") -> Path:
+    """Fetch exactly the segments covering [start, end] of a YouTube DASH mp4 stream, in parallel."""
+    import os
+    import subprocess
+    import urllib.request
+    from concurrent.futures import ThreadPoolExecutor
+
+    import yt_dlp
+
+    with yt_dlp.YoutubeDL({"quiet": True, "noplaylist": True, "js_runtimes": _JS_RUNTIMES}) as ydl:
+        info = ydl.extract_info(url, download=False)
+    cands = [
+        f for f in info.get("formats", [])
+        if f.get("vcodec") not in (None, "none") and f.get("acodec") in (None, "none")
+        and f.get("ext") == "mp4" and f.get("protocol") in ("https", "http")
+        and (f.get("height") or 0) <= max_height and f.get("url")
+    ]
+    if not cands:
+        raise RuntimeError("no video-only mp4 stream available")
+    # Tallest first, then the cheapest bitrate at that height (AV1 < H.264 for the same picture).
+    best_h = max(f["height"] for f in cands)
+    fmt = min((f for f in cands if f["height"] == best_h), key=lambda f: f.get("tbr") or 1e9)
+    stream_url, headers = fmt["url"], dict(fmt.get("http_headers") or {})
+
+    def fetch(a: int, b: int) -> bytes:
+        req = urllib.request.Request(stream_url, headers={**headers, "Range": f"bytes={a}-{b}"})
+        with urllib.request.urlopen(req, timeout=120) as r:
+            return r.read()
+
+    head = fetch(0, 1_000_000)
+    parsed = _parse_sidx(head)
+    if parsed is None:
+        raise RuntimeError("stream has no segment index")
+    timescale, ept, seg_base, segs = parsed
+    init_end = seg_base  # ftyp + moov + sidx (+ any padding before the first fragment)
+
+    t = ept / timescale
+    off = seg_base
+    chosen: list[tuple[int, int, float, float]] = []
+    for size, dur in segs:
+        ts, te = t, t + dur / timescale
+        if te > start_sec and ts < end_sec:
+            chosen.append((off, off + size, ts, te))
+        t, off = te, off + size
+    if not chosen:
+        raise RuntimeError("requested range is outside the video")
+    b0, b1 = chosen[0][0], chosen[-1][1]
+    actual_start, actual_end = chosen[0][2], chosen[-1][3]
+
+    chunk = 4_000_000
+    ranges = [(a, min(a + chunk - 1, b1 - 1)) for a in range(b0, b1, chunk)]
+    total = b1 - b0
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    raw = out_path.with_suffix(".raw.mp4")
+    done = 0
+    with raw.open("wb") as fh:
+        fh.write(head[:init_end] if init_end <= len(head) else fetch(0, init_end - 1))
+        fh.truncate(init_end + total)
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            for (a, b), data in zip(ranges, ex.map(lambda r: fetch(*r), ranges)):
+                fh.seek(init_end + (a - b0))
+                fh.write(data)
+                done += len(data)
+                if progress:
+                    progress(done, total)
+
+    # Remux so the clip is a normal mp4 whose timestamps start at 0.
+    exe = os.path.join(ffmpeg_path(), "ffmpeg.exe" if os.name == "nt" else "ffmpeg")
+    final = out_path.with_suffix(".mp4")
+    subprocess.run([exe, "-hide_banner", "-loglevel", "error", "-nostdin", "-y", "-i", str(raw),
+                    "-c", "copy", "-movflags", "+faststart", str(final)], check=True)
+    raw.unlink(missing_ok=True)
+    ClipMeta(url, str(fmt.get("format_id")), float(start_sec), float(end_sec), actual_start, actual_end).save(final)
     return final
 
 

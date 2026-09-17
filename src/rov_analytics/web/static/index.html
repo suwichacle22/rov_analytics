@@ -67,7 +67,7 @@
           <input id="url" placeholder="https://www.youtube.com/watch?v=..." value="">
         </label>
         <div class="row">
-          <label>Game starts at (in the VOD)<input id="from" placeholder="49:57"></label>
+          <label>Clock 0:00 at (VOD time)<input id="from" placeholder="49:57"></label>
           <label>Game ends at<input id="to" placeholder="1:06:19"></label>
         </div>
         <div class="row">
@@ -104,7 +104,7 @@
       <section class="card">
         <h2>3. Track</h2>
         <div class="row">
-          <label>Clock 0:00 at clip second<input id="gameStart" type="number" value="0" step="0.5"></label>
+          <label>Clock 0:00 at clip second (auto-filled)<input id="gameStart" type="number" value="0" step="0.5"></label>
           <label>Samples per second<input id="fps" type="number" value="2" step="1" min="1" max="10"></label>
         </div>
         <button id="btnTrack">Start tracking</button>
@@ -168,10 +168,12 @@ async function loadTemplates() {
 }
 async function loadVideos() {
   const vids = await api('/api/videos');
+  videoMeta = Object.fromEntries(vids.map(v => [v.path, v.start_offset]));
   $('videos').innerHTML = '<option value="">fetched clips...</option>' + vids.map(v => `<option value="${v.path}">${v.name} (${v.mb} MB)</option>`).join('');
 }
 $('source').onchange = loadTemplates;
-$('videos').onchange = () => { if ($('videos').value) { $('url').value = $('videos').value; currentVideo = $('videos').value; $('from').value=''; $('to').value=''; } };
+let videoMeta = {};
+$('videos').onchange = () => { const v = $('videos').value; if (v) { $('url').value = v; currentVideo = v; $('from').value=''; $('to').value=''; if (videoMeta[v] != null) $('gameStart').value = videoMeta[v]; } };
 
 function listen(jobId, handlers) {
   const es = new EventSource(`/api/jobs/${jobId}/events`);
@@ -188,7 +190,13 @@ $('btnDownload').onclick = async () => {
     const {job_id} = await api('/api/download', {url: $('url').value, start: $('from').value || null, end: $('to').value || null});
     listen(job_id, {
       status: d => { st.textContent = d.message; if (d.video) currentVideo = d.video; },
-      done: d => { st.textContent = `ready: ${d.width}x${d.height}, ${d.fps} fps, ${(d.duration_sec/60).toFixed(1)} min`; currentVideo = d.video; $('dlbar').style.width='100%'; $('btnDownload').disabled=false; loadVideos(); },
+      progress: d => { $('dlbar').style.width = `${Math.round(d.fraction*100)}%`; st.textContent = `downloading ${(d.done/1e6).toFixed(0)} / ${(d.total/1e6).toFixed(0)} MB`; },
+      done: d => {
+        st.textContent = `ready: ${d.width}x${d.height}, ${d.fps} fps, ${(d.duration_sec/60).toFixed(1)} min` + (d.start_offset != null ? ` · clock 0:00 at clip second ${d.start_offset}` : '');
+        currentVideo = d.video; $('dlbar').style.width='100%'; $('btnDownload').disabled=false;
+        if (d.start_offset != null) $('gameStart').value = d.start_offset;
+        loadVideos();
+      },
       error: d => { st.className='status err'; st.textContent = d.message; $('btnDownload').disabled=false; },
     });
   } catch (e) { st.className='status err'; st.textContent = e.message; $('btnDownload').disabled=false; }

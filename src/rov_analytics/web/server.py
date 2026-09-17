@@ -30,7 +30,7 @@ from pydantic import BaseModel
 from .. import analytics, pipeline, render
 from ..calibrate import save_template, template_path
 from ..config import SourceConfig
-from ..video import clean_background, crop_box, download, parse_timestamp, probe, read_frame_at
+from ..video import ClipMeta, clean_background, crop_box, download, parse_timestamp, probe, read_frame_at
 from ..zones import load_zones
 
 ROOT = Path.cwd()
@@ -104,7 +104,11 @@ def _ensure_video(job: Job, url: str, start: float | None, end: float | None) ->
         job.emit("status", {"stage": "download", "message": "using cached clip", "video": str(out)})
         return out
     job.emit("status", {"stage": "download", "message": "downloading clip ...", "video": str(out)})
-    download(url, out, start_sec=start, end_sec=end)
+
+    def on_progress(done: int, total: int) -> None:
+        job.emit("progress", {"done": done, "total": total, "fraction": done / total if total else 0.0})
+
+    download(url, out, start_sec=start, end_sec=end, progress=on_progress)
     job.emit("status", {"stage": "download", "message": "download complete", "video": str(out)})
     return out
 
@@ -115,8 +119,10 @@ def _run_download_job(job: Job) -> None:
         job.status = "running"
         video = _ensure_video(job, p["url"], p.get("start"), p.get("end"))
         info = probe(video)
+        meta = ClipMeta.load(video)
         job.result = {"video": str(video), "width": info.width, "height": info.height,
-                      "fps": info.fps, "duration_sec": round(info.duration_sec, 1)}
+                      "fps": info.fps, "duration_sec": round(info.duration_sec, 1),
+                      "start_offset": round(meta.start_offset, 1) if meta else None}
         job.status = "done"
         job.emit("done", job.result)
     except Exception as e:  # noqa: BLE001
@@ -287,7 +293,9 @@ def list_templates(source: str) -> list[str]:
 def list_videos() -> list[dict]:
     out = []
     for p in sorted(VIDEOS.glob("*.mp4"), key=lambda p: -p.stat().st_mtime):
-        out.append({"path": str(p), "name": p.name, "mb": round(p.stat().st_size / 1e6)})
+        meta = ClipMeta.load(p)
+        out.append({"path": str(p), "name": p.name, "mb": round(p.stat().st_size / 1e6),
+                    "start_offset": round(meta.start_offset, 1) if meta else None})
     return out
 
 

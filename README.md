@@ -23,9 +23,9 @@ python -m uv run rov-web
 
 Open http://127.0.0.1:8000. The page has three steps:
 
-1. **Video.** Paste a YouTube link with the game's start and end time in the VOD and press "Fetch clip", or pick a clip fetched earlier. Local file paths work too.
+1. **Video.** Paste a YouTube link, enter the VOD time where the in-game clock reads 0:00 and where the game ends, and press "Fetch clip". A 16-minute game arrives in about a minute. The clock offset for step 3 is filled in automatically. Or pick a clip fetched earlier; local file paths work too.
 2. **Hero.** Choose the broadcast layout and the hero template. If the hero has no template yet, open "Make a new template", type the hero name, pick a clip second where the icon is clearly visible, press "Show", and click the centre of the icon on the minimap. The template is saved and selected.
-3. **Track.** Enter the clip second where the in-game clock reads 0:00 (negative if the clip starts after 0:00) and press "Start tracking".
+3. **Track.** Check the auto-filled clock offset (edit it if the clip came from elsewhere) and press "Start tracking".
 
 While it runs you see the live minimap with a circle on the tracked hero, the heatmap growing once per game second, game time, coverage, the current zone and time per zone. When it finishes, the final heatmap, path image, four phase heatmaps and the CSV are linked at the bottom. Outputs land in `data/tracks/` exactly as with the CLI.
 
@@ -44,7 +44,7 @@ python -m uv run rov download "https://www.youtube.com/watch?v=..." -o data/vide
 python -m uv run rov info data/videos/rpl_g1.mp4
 ```
 
-Audio is skipped by default. A 20-minute 1080p game is roughly 300 to 600 MB. The clip may begin a few seconds before `--from` because the cut lands on a keyframe. Leave `--from` and `--to` off to download the whole video.
+Audio is skipped by default. A 20-minute 1080p game is roughly 300 to 600 MB and takes about a minute: the downloader reads the stream's segment index and fetches exactly the bytes for the range over eight parallel connections, which sidesteps YouTube's per-stream throttling. The clip begins at the 5-second segment boundary at or before `--from`; the exact offset is printed and saved in `<clip>.meta.json`. If `--from` is the moment the in-game clock reads 0:00, pass that offset as `--game-start` when tracking. Leave `--from` and `--to` off to download the whole video.
 
 **2. Calibrate the source once per broadcast layout.** Opens a window. Drag a box around the minimap, then around one hero icon, then click one blue ring pixel and one red ring pixel. Saved as a JSON you reuse for every video from that tournament.
 

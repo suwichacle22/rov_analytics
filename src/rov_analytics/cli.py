@@ -13,7 +13,7 @@ from . import analytics, pipeline, render
 from .calibrate import calibrate_interactive, crop_template_interactive, save_template
 from .config import SourceConfig
 from .match import MatchManifest, example_manifest
-from .video import crop_box, download, parse_timestamp, probe, read_frame_at
+from .video import ClipMeta, crop_box, download, parse_timestamp, probe, read_frame_at
 from .zones import default_polygons, load_zones, save_zones
 
 DEFAULT_TEMPLATES = "templates"
@@ -27,6 +27,10 @@ def cmd_download(a: argparse.Namespace) -> None:
     out = download(a.url, a.out, max_height=a.max_height, start_sec=start, end_sec=end, video_only=not a.audio)
     info = probe(out)
     print(f"saved {out}  ({info.width}x{info.height}, {info.fps:.2f} fps, {info.duration_sec/60:.1f} min)")
+    meta = ClipMeta.load(out)
+    if meta is not None:
+        print(f"clip begins {meta.start_offset:.1f} s before the requested start. "
+              f"If --from was the moment the clock read 0:00, track with --start 0 --game-start {meta.start_offset:.1f}")
 
 
 def cmd_info(a: argparse.Namespace) -> None:
