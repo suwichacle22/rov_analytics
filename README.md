@@ -82,7 +82,13 @@ Outputs per hero:
 python -m uv run rov heatmap data/tracks/rpl_g1_zill.csv --video data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --min-sec 0 --max-sec 240
 ```
 
-**7. Zones.** The default zone layout is geometric: bases by corner distance, side lanes as edge strips, mid lane as a band on the main diagonal, river as a band on the anti-diagonal, objective pits as circles, and the rest is jungle split into four quadrants. Check it over a real frame:
+**7. Phase heatmaps.** One heatmap per game window plus a combined sheet. Default windows are 0-4, 4-8, 8-15 and 15-end minutes.
+
+```
+python -m uv run rov phases data/tracks/rpl_g1_zill.csv --video data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --phases "0-4,4-8,8-15,15-"
+```
+
+**8. Zones.** The default zone layout is geometric: bases by corner distance, side lanes as edge strips, mid lane as a band on the main diagonal, river as a band on the anti-diagonal, objective pits as circles, and the rest is jungle split into four quadrants. Check it over a real frame:
 
 ```
 python -m uv run rov zones-preview data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json -o data/zones_preview.png

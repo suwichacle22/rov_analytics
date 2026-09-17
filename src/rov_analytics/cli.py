@@ -125,6 +125,15 @@ def cmd_heatmap(a: argparse.Namespace) -> None:
     print(json.dumps(analytics.summarize(rows, a.fps), indent=2))
 
 
+def cmd_phases(a: argparse.Namespace) -> None:
+    src = SourceConfig.load(a.source)
+    rows = analytics.read_csv(a.track)
+    phases = pipeline.parse_phases(a.phases) if a.phases else None
+    result = pipeline.render_phases(rows, a.video, src, a.out_dir, phases=phases, bins=a.bins, sample_fps=a.fps)
+    print(f"sheet: {result['sheet']}")
+    print(json.dumps(result["stats"], indent=2))
+
+
 def cmd_rezone(a: argparse.Namespace) -> None:
     zones = load_zones(a.zones)
     for track in a.tracks:
@@ -229,6 +238,16 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--max-sec", type=float, default=None, help="only game seconds <= this")
     s.add_argument("--background-time", type=float, default=0.0)
     s.set_defaults(func=cmd_heatmap)
+
+    s = sub.add_parser("phases", help="one heatmap per game phase plus a combined sheet")
+    s.add_argument("track")
+    s.add_argument("--video", required=True)
+    s.add_argument("--source", required=True)
+    s.add_argument("--phases", default=None, help="minutes, e.g. '0-4,4-8,8-15,15-' (default). Open end with a trailing dash.")
+    s.add_argument("--out-dir", default="data/tracks/phases")
+    s.add_argument("--bins", type=int, default=64)
+    s.add_argument("--fps", type=float, default=2.0)
+    s.set_defaults(func=cmd_phases)
 
     s = sub.add_parser("rezone", help="re-label the zone column of existing track CSVs and rewrite their summaries")
     s.add_argument("tracks", nargs="+", help="track CSV files")

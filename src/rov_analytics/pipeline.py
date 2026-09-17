@@ -63,6 +63,70 @@ def track_video(
     return rows, summary
 
 
+DEFAULT_PHASES: list[tuple[float, float | None]] = [(0, 240), (240, 480), (480, 900), (900, None)]
+
+
+def parse_phases(text: str) -> list[tuple[float, float | None]]:
+    """'0-4,4-8,8-15,15-' in minutes -> [(0,240),(240,480),(480,900),(900,None)]."""
+    out = []
+    for part in text.split(","):
+        a, b = part.strip().split("-")
+        out.append((float(a) * 60, float(b) * 60 if b.strip() else None))
+    return out
+
+
+def render_phases(
+    rows: list[analytics.TrackRow],
+    video: str | Path,
+    source: SourceConfig,
+    out_dir: str | Path,
+    phases: list[tuple[float, float | None]] | None = None,
+    bins: int = 64,
+    sample_fps: float = 2.0,
+) -> dict:
+    """One temperature heatmap per game-time window, plus a combined sheet and per-phase stats."""
+    import numpy as np
+
+    phases = phases or DEFAULT_PHASES
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    valid_rows = [r for r in rows if r.x_norm is not None]
+    if not valid_rows:
+        raise ValueError("track has no positions")
+    v0, v1 = min(r.video_sec for r in valid_rows), max(r.video_sec for r in valid_rows)
+    background = clean_background(video, source.minimap_box, start_sec=v0, end_sec=v1)
+    stem = f"{rows[0].match_id}_{rows[0].hero.lower()}"
+    who = rows[0].player or rows[0].hero
+    game_end = max(r.game_sec for r in rows)
+
+    images, stats = [], {}
+    for lo, hi in phases:
+        hi_eff = hi if hi is not None else game_end
+        sel = [r for r in rows if lo <= r.game_sec < hi_eff + 1e-6]
+        label = f"{int(lo)//60}:{int(lo)%60:02d} - {int(hi_eff)//60}:{int(hi_eff)%60:02d}"
+        grid = analytics.heatmap_grid(sel, bins=bins)
+        tracked = sum(1 for r in sel if r.x_norm is not None) / sample_fps
+        img = render.heatmap_image(background, grid, title=f"{who}  {label}", subtitle=f"{rows[0].match_id}   {tracked:.0f}s tracked")
+        name = f"{stem}_phase_{int(lo)//60:02d}-{int(hi_eff)//60:02d}.png"
+        cv2.imwrite(str(out_dir / name), img)
+        images.append(img)
+        s = analytics.summarize(sel, sample_fps)
+        stats[label] = {"tracked_seconds": s["tracked_seconds"], "zone_changes_per_min": s["zone_changes_per_min"],
+                        "top_zones": dict(list(s["dwell_seconds"].items())[:5])}
+
+    # 2-column sheet
+    h = max(i.shape[0] for i in images)
+    w = max(i.shape[1] for i in images)
+    padded = [cv2.copyMakeBorder(i, 0, h - i.shape[0], 0, w - i.shape[1], cv2.BORDER_CONSTANT, value=(16, 16, 16)) for i in images]
+    while len(padded) % 2:
+        padded.append(np.full((h, w, 3), 16, dtype=np.uint8))
+    sheet_rows = [np.hstack(padded[i : i + 2]) for i in range(0, len(padded), 2)]
+    sheet = np.vstack(sheet_rows)
+    sheet_path = out_dir / f"{stem}_phases.png"
+    cv2.imwrite(str(sheet_path), sheet)
+    return {"sheet": sheet_path, "stats": stats}
+
+
 def render_outputs(
     rows: list[analytics.TrackRow],
     video: str | Path,
