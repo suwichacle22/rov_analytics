@@ -18,8 +18,9 @@ def heatmap_image(background: np.ndarray, grid: np.ndarray, blur: int = 9, alpha
         k = blur if blur % 2 == 1 else blur + 1
         heat = cv2.GaussianBlur(heat, (k, k), 0)
     if heat.max() > 0:
-        heat = heat / heat.max()
-    base = cv2.cvtColor(cv2.cvtColor(background, cv2.COLOR_BGR2GRAY), cv2.COLOR_GRAY2BGR).astype(np.float32) * 0.45
+        # Log scaling so a few very hot cells (base, a long fight) do not hide everything else.
+        heat = np.log1p(heat) / np.log1p(heat.max())
+    base = cv2.cvtColor(cv2.cvtColor(background, cv2.COLOR_BGR2GRAY), cv2.COLOR_GRAY2BGR).astype(np.float32) * 0.35
     glow = np.stack([heat * 255] * 3, axis=-1)
     out = base * (1 - alpha * heat[..., None]) + glow * alpha
     return np.clip(out, 0, 255).astype(np.uint8)

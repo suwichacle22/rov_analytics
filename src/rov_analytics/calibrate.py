@@ -90,12 +90,29 @@ def crop_template_interactive(minimap: np.ndarray) -> np.ndarray:
     return minimap[y : y + h, x : x + w].copy()
 
 
-def save_template(template: np.ndarray, templates_dir: str | Path, hero: str, side: str, source_name: str) -> Path:
-    out = Path(templates_dir) / source_name / f"{hero.lower()}_{side}.png"
+def save_template(template: np.ndarray, templates_dir: str | Path, hero: str, source_name: str) -> Path:
+    """Templates are keyed by hero only. A hero's minimap face is the same on either side."""
+    out = Path(templates_dir) / source_name / f"{_slug(hero)}.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(out), template)
     return out
 
 
-def template_path(templates_dir: str | Path, hero: str, side: str, source_name: str) -> Path:
-    return Path(templates_dir) / source_name / f"{hero.lower()}_{side}.png"
+def template_path(templates_dir: str | Path, hero: str, source_name: str, side: str | None = None) -> Path:
+    """Resolve the template for a hero. Falls back to the old `<hero>_<side>.png` naming."""
+    base = Path(templates_dir) / source_name
+    candidates = [base / f"{_slug(hero)}.png"]
+    if side:
+        candidates.append(base / f"{_slug(hero)}_{side}.png")
+    for c in candidates:
+        if c.exists():
+            return c
+    known = sorted(p.stem for p in base.glob("*.png")) if base.exists() else []
+    raise FileNotFoundError(
+        f"no template for hero '{hero}' in {base}. Known templates: {known}. "
+        f"Create one with: rov template <video> --source <config> --hero {hero} --time <sec>"
+    )
+
+
+def _slug(name: str) -> str:
+    return "".join(ch for ch in name.strip().lower().replace(" ", "_") if ch.isalnum() or ch in "_-")

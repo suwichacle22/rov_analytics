@@ -57,7 +57,7 @@ class IconDetector:
         self.side = side
         self.min_score = min_score
         self.min_ring_pixels = min_ring_pixels
-        self.ranges = source.ring_ranges[side]
+        self.ranges = source.ranges_for(side)
         th, tw = template.shape[:2]
         # A ring-presence kernel the size of the icon, used to count team pixels per location.
         self._ring_kernel = np.ones((th, tw), dtype=np.float32)

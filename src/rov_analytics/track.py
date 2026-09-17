@@ -43,17 +43,22 @@ class Tracker:
     def update(self, det: Detection, game_sec: float, video_sec: float) -> TrackPoint:
         if det.found:
             pos = (det.x_norm, det.y_norm)
-            if self.last is None:
+            in_gap = self.last is None or self.held_for >= self.max_hold
+            if in_gap:
+                # No trustworthy previous position (start, or lost for too long, e.g. after a
+                # death). Accept the detection outright.
+                status = "detected" if self.last is None else "reacquired"
                 self.last, self.held_for, self.pending = pos, 0, []
-                return TrackPoint(game_sec, video_sec, *pos, det.score, "detected")
+                return TrackPoint(game_sec, video_sec, *pos, det.score, status)
 
             jump = ((pos[0] - self.last[0]) ** 2 + (pos[1] - self.last[1]) ** 2) ** 0.5
             if jump <= self.max_jump * (1 + self.held_for):
                 self.last, self.held_for, self.pending = pos, 0, []
                 return TrackPoint(game_sec, video_sec, *pos, det.score, "detected")
 
-            # Too far to be a normal step. Remember it; accept once it repeats.
-            self.pending.append(pos)
+            # Too far to be a normal step (recall, teleport, or a wrong match). Remember the
+            # last few such points; accept once they agree with each other.
+            self.pending = (self.pending + [pos])[-self.reacquire_frames :]
             if len(self.pending) >= self.reacquire_frames and _cluster_tight(self.pending, self.max_jump * 2):
                 self.last, self.held_for, self.pending = pos, 0, []
                 return TrackPoint(game_sec, video_sec, *pos, det.score, "reacquired")

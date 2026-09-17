@@ -37,7 +37,13 @@ class SourceConfig:
     ring_ranges: dict[str, list[HsvRange]] = field(
         default_factory=lambda: {k: list(v) for k, v in DEFAULT_RING_RANGES.items()}
     )
+    # Broadcast observer UI draws a green ring around the hero the camera follows,
+    # replacing the team ring. Accept it for either side.
+    focus_ring_ranges: list[HsvRange] = field(default_factory=lambda: [HsvRange([40, 90, 90], [85, 255, 255])])
     notes: str = ""
+
+    def ranges_for(self, side: str) -> list[HsvRange]:
+        return list(self.ring_ranges[side]) + list(self.focus_ring_ranges)
 
     @property
     def crop_size(self) -> tuple[int, int]:
@@ -55,13 +61,17 @@ class SourceConfig:
         }
         if not ranges:
             ranges = {k: list(v) for k, v in DEFAULT_RING_RANGES.items()}
-        return cls(
+        focus = [HsvRange(r["low"], r["high"]) for r in data.get("focus_ring_ranges", [])]
+        cfg = cls(
             name=data["name"],
             minimap_box=list(data["minimap_box"]),
             icon_diameter_px=int(data.get("icon_diameter_px", 22)),
             ring_ranges=ranges,
             notes=data.get("notes", ""),
         )
+        if focus:
+            cfg.focus_ring_ranges = focus
+        return cfg
 
     def save(self, path: str | Path) -> None:
         path = Path(path)

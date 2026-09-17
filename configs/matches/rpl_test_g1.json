@@ -1,0 +1,20 @@
+{
+  "match_id": "rpl_test_g1",
+  "video": "data/videos/rpl_test_g1.mp4",
+  "source": "configs/sources/rpl2026.json",
+  "game_start": -18.0,
+  "end": null,
+  "players": [
+    {"player": "FS AshEarth", "hero": "ashearth", "side": "blue", "role": ""},
+    {"player": "FS Overone", "hero": "overone", "side": "blue", "role": "jungle"},
+    {"player": "FS Agetsive", "hero": "agetsive", "side": "blue", "role": ""},
+    {"player": "FS Sharkz", "hero": "sharkz", "side": "blue", "role": ""},
+    {"player": "FS NOARje", "hero": "noarje", "side": "blue", "role": ""},
+    {"player": "SLX Farook", "hero": "", "side": "red", "role": ""},
+    {"player": "SLX Myra", "hero": "", "side": "red", "role": ""},
+    {"player": "SLX Psocute", "hero": "", "side": "red", "role": ""},
+    {"player": "SLX 1S1K", "hero": "", "side": "red", "role": ""},
+    {"player": "SLX Joelong", "hero": "", "side": "red", "role": ""}
+  ],
+  "notes": "RPL 2026 Winter, FS vs SLX game 1, from https://www.youtube.com/watch?v=HIQ5uKa-1_A at 49:57-1:06:19. Clip starts 18 s after the in-game clock hit 0:00. Blue-side 'hero' values are placeholders named after the player because the actual hero names were not read from the draft; rename the template files and these entries to real hero names when known. Red-side templates not yet made."
+}

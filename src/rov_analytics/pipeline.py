@@ -12,7 +12,7 @@ from .config import SourceConfig
 from .detect import IconDetector, load_template
 from .track import Tracker
 from .video import crop_box, iter_frames, read_frame_at
-from .zones import ZoneIndex, load_zones
+from .zones import load_zones
 
 
 def track_video(
@@ -33,11 +33,11 @@ def track_video(
     debug_video: str | Path | None = None,
     progress: bool = True,
 ) -> tuple[list[analytics.TrackRow], dict]:
-    tpl_path = template_path(templates_dir, hero, side, source.name)
+    tpl_path = template_path(templates_dir, hero, source.name, side)
     template = load_template(tpl_path)
     detector = IconDetector(template, source, side, min_score=min_score)
     tracker = Tracker(sample_fps=sample_fps)
-    zones = ZoneIndex(load_zones(zones_path))
+    zones = load_zones(zones_path)
     match_id = match_id or Path(video).stem
 
     debug = render.DebugVideo(debug_video, source.crop_size, sample_fps) if debug_video else None
@@ -70,6 +70,7 @@ def render_outputs(
     out_dir: str | Path,
     background_sec: float = 0.0,
     bins: int = 64,
+    stem: str | None = None,
 ) -> dict[str, Path]:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -77,7 +78,8 @@ def render_outputs(
     grid = analytics.heatmap_grid(rows, bins=bins)
     heat = render.heatmap_image(background, grid)
     path = render.path_image(background, rows)
-    stem = rows[0].match_id if rows else Path(video).stem
+    if stem is None:
+        stem = f"{rows[0].match_id}_{rows[0].hero.lower()}" if rows else Path(video).stem
     outputs = {
         "heatmap": out_dir / f"{stem}_heatmap.png",
         "path": out_dir / f"{stem}_path.png",

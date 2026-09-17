@@ -36,41 +36,65 @@ python -m uv run rov calibrate data/videos/rpl_g1.mp4 --name rpl2026 -o configs/
 
 Check `configs/sources/rpl2026.minimap.png` to confirm the crop is right.
 
-**3. Make a template for the hero.** Pick a video second where the hero stands alone (base at game start is ideal). Drag a box around the icon.
+**3. Make a template for each hero you have not seen before.** Templates are keyed by hero, not player, because a hero's minimap face is the same in every game and on either side. Pick a video second where the hero stands alone (base at game start is ideal) and drag a box around the icon.
 
 ```
-python -m uv run rov template data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --hero Zill --side blue --time 35
+python -m uv run rov template data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --hero zill --time 35
 ```
 
-Templates are saved under `templates/<source>/<hero>_<side>.png` and reused across videos.
+Saved as `templates/<source>/<hero>.png`. Over a season the folder fills up and new games need no new crops.
 
-**4. Track.** `--start` is the video second where the game begins. `--game-start` is where the in-game clock reads 0:00 if that differs.
+**4. Describe the game in a manifest.** One JSON per game, filled from the draft screen: who played which hero on which side, plus where the clock reads 0:00 in the clip.
 
 ```
-python -m uv run rov track data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --hero Zill --side blue --player "PlayerName" --start 34 --end 1000 --debug-video data/tracks/rpl_g1_debug.mp4
+python -m uv run rov match-init data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --game-start 3 -o configs/matches/rpl_g1.json
 ```
 
-Outputs:
+Then edit the file:
 
-- `data/tracks/rpl_g1_zill_blue.csv`, one row per half second: game time, x and y in 0..1, zone, match score, status.
-- `data/tracks/rpl_g1_zill_blue.summary.json`: coverage, distance, zone changes per minute, dwell seconds per zone.
-- `data/tracks/rpl_g1_heatmap.png` and `rpl_g1_path.png`.
+```json
+{"player": "FS Overone", "hero": "zill", "side": "blue", "role": "jungle"}
+```
+
+**5. Track by player name.** The tool resolves player to hero to template. If a template is missing it stops and names the hero you need to crop.
+
+```
+python -m uv run rov track --match configs/matches/rpl_g1.json --player "FS Overone" --debug-video data/tracks/rpl_g1_debug.mp4
+python -m uv run rov track --match configs/matches/rpl_g1.json --all
+```
+
+You can still skip the manifest and pass everything by hand:
+
+```
+python -m uv run rov track data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --hero zill --side blue --game-start 3
+```
+
+Outputs per hero:
+
+- `data/tracks/<match>_<hero>.csv`, one row per half second: game time, x and y in 0..1, zone, match score, status.
+- `data/tracks/<match>_<hero>.summary.json`: coverage, distance, zone changes per minute, dwell seconds per zone.
+- `data/tracks/<match>_<hero>_heatmap.png` and `_path.png`.
 - The debug video shows the minimap with a circle on the detected position. White circle means detected, red means held from the previous frame. Watch this first when something looks wrong.
 
-**5. Re-render for a time window** without re-tracking:
+**6. Re-render for a time window** without re-tracking:
 
 ```
-python -m uv run rov heatmap data/tracks/rpl_g1_zill_blue.csv --video data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --min-sec 0 --max-sec 240
+python -m uv run rov heatmap data/tracks/rpl_g1_zill.csv --video data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --min-sec 0 --max-sec 240
 ```
 
-**6. Zones.** The built-in AoV zone layout is approximate. Export it, edit the polygons, and check them over a real frame:
+**7. Zones.** The default zone layout is geometric: bases by corner distance, side lanes as edge strips, mid lane as a band on the main diagonal, river as a band on the anti-diagonal, objective pits as circles, and the rest is jungle split into four quadrants. Check it over a real frame:
 
 ```
-python -m uv run rov zones-init -o configs/zones/aov.json
-python -m uv run rov zones-preview data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --zones configs/zones/aov.json -o data/zones_preview.png
+python -m uv run rov zones-preview data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json -o data/zones_preview.png
 ```
 
-Then pass `--zones configs/zones/aov.json` to `track`.
+To tune it, write a JSON object with any of the parameters in `GeometricZones` (for example `{"mid_band": 0.06, "pit_radius": 0.09}`) and pass it with `--zones`. For fully hand-drawn regions, `rov zones-init` exports polygons that override the geometry where they exist.
+
+Changing zones does not require re-tracking. Re-label existing CSVs and rewrite their summaries:
+
+```
+python -m uv run rov rezone data/tracks/rpl_g1_*.csv --zones configs/zones/mine.json
+```
 
 ## How detection works
 
@@ -88,9 +112,9 @@ Generates a fake broadcast with a scripted jungler route, a ping distractor, nin
 ```
 python -m uv run python scripts/make_synthetic_video.py data/synthetic/game.mp4 --seconds 60
 python -m uv run rov calibrate data/synthetic/game.mp4 --name synthetic -o configs/sources/synthetic.json --time 0.1 --box 20,480,220,220 --icon-diameter 20
-python -m uv run rov template data/synthetic/game.mp4 --source configs/sources/synthetic.json --hero TestJungler --side blue --time 0.1 --box 12,188,20,20
+python -m uv run rov template data/synthetic/game.mp4 --source configs/sources/synthetic.json --hero TestJungler --time 0.1 --box 12,188,20,20
 python -m uv run rov track data/synthetic/game.mp4 --source configs/sources/synthetic.json --hero TestJungler --side blue --debug-video data/synthetic/debug.mp4
-python -m uv run python scripts/eval_synthetic.py data/tracks/game_testjungler_blue.csv data/synthetic/game.truth.csv
+python -m uv run python scripts/eval_synthetic.py data/tracks/game_testjungler.csv data/synthetic/game.truth.csv
 ```
 
 Expected: median error under 1 px, misses only during the teleport and the overlay.
@@ -115,9 +139,10 @@ src/rov_analytics/
   analytics.py  CSV I/O, heatmap grid, summary stats
   render.py     heatmap and path images, debug video
   pipeline.py   glue
+  match.py      match manifest: video, source, who played which hero
   cli.py        `rov` commands
 scripts/        synthetic video generator and evaluator
-configs/        source configs and zone files
+configs/        source configs, match manifests, zone files
 templates/      hero icon templates per source
 data/           videos and outputs (ignored by git)
 ```

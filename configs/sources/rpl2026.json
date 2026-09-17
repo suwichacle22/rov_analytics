@@ -1,0 +1,67 @@
+{
+  "name": "rpl2026",
+  "minimap_box": [
+    0,
+    59,
+    298,
+    306
+  ],
+  "icon_diameter_px": 30,
+  "ring_ranges": {
+    "blue": [
+      {
+        "low": [
+          98,
+          80,
+          150
+        ],
+        "high": [
+          122,
+          255,
+          255
+        ]
+      }
+    ],
+    "red": [
+      {
+        "low": [
+          0,
+          60,
+          50
+        ],
+        "high": [
+          8,
+          255,
+          255
+        ]
+      },
+      {
+        "low": [
+          165,
+          60,
+          50
+        ],
+        "high": [
+          179,
+          255,
+          255
+        ]
+      }
+    ]
+  },
+  "focus_ring_ranges": [
+    {
+      "low": [
+        40,
+        60,
+        60
+      ],
+      "high": [
+        85,
+        255,
+        255
+      ]
+    }
+  ],
+  "notes": "RPL 2026 Winter broadcast, 1080p. Observer view, minimap top-left. Green ring = camera-focused hero."
+}
