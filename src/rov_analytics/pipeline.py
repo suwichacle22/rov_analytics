@@ -102,6 +102,7 @@ def render_phases(
     phases: list[tuple[float, float | None]] | None = None,
     bins: int = 64,
     sample_fps: float = 2.0,
+    background: np.ndarray | None = None,
 ) -> dict:
     """One temperature heatmap per game-time window, plus a combined sheet and per-phase stats."""
     phases = phases or DEFAULT_PHASES
@@ -110,8 +111,9 @@ def render_phases(
     valid_rows = [r for r in rows if r.x_norm is not None]
     if not valid_rows:
         raise ValueError("track has no positions")
-    v0, v1 = min(r.video_sec for r in valid_rows), max(r.video_sec for r in valid_rows)
-    background = clean_background(video, source.minimap_box, start_sec=v0, end_sec=v1)
+    if background is None:
+        v0, v1 = min(r.video_sec for r in valid_rows), max(r.video_sec for r in valid_rows)
+        background = clean_background(video, source.minimap_box, start_sec=v0, end_sec=v1)
     stem = f"{rows[0].match_id}_{rows[0].hero.lower()}"
     who = rows[0].player or rows[0].hero
     game_end = max(r.game_sec for r in rows)
@@ -152,11 +154,14 @@ def render_outputs(
     background_sec: float = 0.0,
     bins: int = 64,
     stem: str | None = None,
+    background: np.ndarray | None = None,
 ) -> dict[str, Path]:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     valid_rows = [r for r in rows if r.x_norm is not None]
-    if valid_rows:
+    if background is not None:
+        pass
+    elif valid_rows:
         v0, v1 = min(r.video_sec for r in valid_rows), max(r.video_sec for r in valid_rows)
         background = clean_background(video, source.minimap_box, start_sec=max(background_sec, v0), end_sec=v1)
     else:

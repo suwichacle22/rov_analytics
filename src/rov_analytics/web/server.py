@@ -195,8 +195,8 @@ def _run_track_job(job: Job) -> None:
         analytics.write_csv(rows, out_csv)
         summary = analytics.summarize(rows, fps)
         analytics.write_summary(summary, out_csv.with_suffix(".summary.json"))
-        outs = pipeline.render_outputs(rows, video, source, TRACKS, stem=out_csv.stem)
-        phases = pipeline.render_phases(rows, video, source, TRACKS / "phases", sample_fps=fps)
+        outs = pipeline.render_outputs(rows, video, source, TRACKS, stem=out_csv.stem, background=background)
+        phases = pipeline.render_phases(rows, video, source, TRACKS / "phases", sample_fps=fps, background=background)
         rel = lambda pth: "/files/" + Path(pth).resolve().relative_to(DATA.resolve()).as_posix()  # noqa: E731
         job.result = {
             "csv": rel(out_csv),

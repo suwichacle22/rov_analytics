@@ -1,6 +1,6 @@
 """Video input: download from YouTube and iterate frames at a target sample rate.
 
-ffmpeg is not required. OpenCV reads the container directly.
+Frame reads go through the bundled ffmpeg (GPU decode when available) with an OpenCV fallback.
 """
 
 from __future__ import annotations
@@ -136,8 +136,41 @@ def probe(path: str | Path) -> VideoInfo:
     return info
 
 
-def read_frame_at(path: str | Path, video_sec: float) -> np.ndarray:
-    """Return the single frame nearest to `video_sec`."""
+def read_frame_at(path: str | Path, video_sec: float, crop: list[int] | None = None) -> np.ndarray:
+    """Return the single frame nearest to `video_sec` (optionally just the `crop` region).
+
+    Uses an ffmpeg seek when available: OpenCV seeks can take several seconds on long
+    60 fps files, ffmpeg's keyframe seek plus a short decode takes a fraction of that.
+    """
+    if _ffmpeg_available():
+        img = _read_frame_ffmpeg(path, video_sec, crop)
+        if img is not None:
+            return img
+    img = _read_frame_opencv(path, video_sec)
+    return crop_box(img, crop) if crop else img
+
+
+def _read_frame_ffmpeg(path: str | Path, video_sec: float, crop: list[int] | None) -> np.ndarray | None:
+    import os
+    import subprocess
+
+    info = probe(path)
+    w, h = (crop[2], crop[3]) if crop else (info.width, info.height)
+    exe = os.path.join(ffmpeg_path(), "ffmpeg.exe" if os.name == "nt" else "ffmpeg")
+    cmd = [exe, "-hide_banner", "-loglevel", "error", "-nostdin"]
+    if isinstance(_HWACCEL, str):
+        cmd += ["-hwaccel", _HWACCEL]
+    cmd += ["-ss", f"{max(0.0, video_sec):.3f}", "-i", str(path), "-frames:v", "1"]
+    if crop:
+        cmd += ["-vf", f"crop={crop[2]}:{crop[3]}:{crop[0]}:{crop[1]}"]
+    cmd += ["-pix_fmt", "bgr24", "-f", "rawvideo", "-"]
+    out = subprocess.run(cmd, capture_output=True, timeout=60).stdout
+    if len(out) < w * h * 3:
+        return None
+    return np.frombuffer(out[: w * h * 3], dtype=np.uint8).reshape(h, w, 3).copy()
+
+
+def _read_frame_opencv(path: str | Path, video_sec: float) -> np.ndarray:
     cap = cv2.VideoCapture(str(path))
     if not cap.isOpened():
         raise FileNotFoundError(f"cannot open video: {path}")
@@ -297,7 +330,7 @@ def clean_background(path: str | Path, box: list[int], samples: int = 15,
     crops = []
     for t in times:
         try:
-            crops.append(crop_box(read_frame_at(path, float(t)), box))
+            crops.append(read_frame_at(path, float(t), crop=box))
         except ValueError:
             continue
     if not crops:
