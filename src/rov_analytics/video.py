@@ -155,19 +155,31 @@ def iter_frames(
     start_sec: float = 0.0,
     end_sec: float | None = None,
     game_start_sec: float | None = None,
+    crop: list[int] | None = None,
+    backend: str = "auto",
 ) -> Iterator[Frame]:
     """Yield frames every 1/sample_fps seconds between start_sec and end_sec.
 
     `game_start_sec` is the video time at which the in-game clock reads 0:00. Defaults
     to `start_sec`, so game_sec is 0 at the first yielded frame.
+
+    `crop` = [x, y, w, h] makes the frame image just that region. With the ffmpeg
+    backend the crop and the frame-rate drop happen inside ffmpeg, which decodes on all
+    cores, so this is several times faster than OpenCV on 1080p60 broadcast video.
     """
+    if game_start_sec is None:
+        game_start_sec = start_sec
+    if backend == "auto":
+        backend = "ffmpeg" if _ffmpeg_available() else "opencv"
+    if backend == "ffmpeg":
+        yield from _iter_frames_ffmpeg(path, sample_fps, start_sec, end_sec, game_start_sec, crop)
+        return
+
     cap = cv2.VideoCapture(str(path))
     if not cap.isOpened():
         raise FileNotFoundError(f"cannot open video: {path}")
     native_fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     step = max(1, int(round(native_fps / sample_fps)))
-    if game_start_sec is None:
-        game_start_sec = start_sec
 
     start_index = int(round(start_sec * native_fps))
     cap.set(cv2.CAP_PROP_POS_FRAMES, start_index)
@@ -184,10 +196,94 @@ def iter_frames(
                 if not ok:
                     break
                 video_sec = index / native_fps
+                if crop is not None:
+                    img = crop_box(img, crop)
                 yield Frame(index=index, video_sec=video_sec, game_sec=video_sec - game_start_sec, image=img)
             index += 1
     finally:
         cap.release()
+
+
+def _ffmpeg_available() -> bool:
+    try:
+        return Path(ffmpeg_path()).exists()
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _iter_frames_ffmpeg(
+    path: str | Path,
+    sample_fps: float,
+    start_sec: float,
+    end_sec: float | None,
+    game_start_sec: float,
+    crop: list[int] | None,
+) -> Iterator[Frame]:
+    """Decode with ffmpeg, crop and drop frame rate inside ffmpeg, read raw BGR from a pipe.
+
+    Tries GPU decoding first (CUDA, then D3D11VA on Windows) and falls back to software.
+    The first working choice is remembered for the rest of the process.
+    """
+    import os
+    import subprocess
+
+    info = probe(path)
+    w, h = (crop[2], crop[3]) if crop else (info.width, info.height)
+    filters = []
+    if crop:
+        filters.append(f"crop={crop[2]}:{crop[3]}:{crop[0]}:{crop[1]}")
+    filters.append(f"fps={sample_fps}")
+    exe = os.path.join(ffmpeg_path(), "ffmpeg.exe" if os.name == "nt" else "ffmpeg")
+    frame_bytes = w * h * 3
+
+    def build(hwaccel: str | None) -> list[str]:
+        cmd = [exe, "-hide_banner", "-loglevel", "error", "-nostdin"]
+        if hwaccel:
+            cmd += ["-hwaccel", hwaccel]
+        if start_sec > 0:
+            cmd += ["-ss", f"{start_sec:.3f}"]
+        cmd += ["-i", str(path)]
+        if end_sec is not None:
+            cmd += ["-t", f"{max(0.0, end_sec - start_sec):.3f}"]
+        cmd += ["-vf", ",".join(filters), "-pix_fmt", "bgr24", "-f", "rawvideo", "-"]
+        return cmd
+
+    global _HWACCEL
+    candidates = [_HWACCEL] if _HWACCEL is not _UNSET else (["cuda", "d3d11va", None] if os.name == "nt" else ["cuda", None])
+    for hwaccel in candidates:
+        proc = subprocess.Popen(build(hwaccel), stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=frame_bytes * 4)
+        first = proc.stdout.read(frame_bytes)
+        if len(first) < frame_bytes:
+            # This decoder produced nothing; try the next one (unless the clip is truly empty).
+            proc.stdout.close()
+            proc.kill()
+            if hwaccel is None or _HWACCEL is not _UNSET:
+                return
+            continue
+        _HWACCEL = hwaccel
+        try:
+            k = 0
+            buf = first
+            while True:
+                img = np.frombuffer(buf, dtype=np.uint8).reshape(h, w, 3)
+                video_sec = start_sec + k / sample_fps
+                index = int(round(video_sec * info.fps))
+                yield Frame(index=index, video_sec=video_sec, game_sec=video_sec - game_start_sec, image=img)
+                k += 1
+                buf = proc.stdout.read(frame_bytes)
+                if len(buf) < frame_bytes:
+                    break
+        finally:
+            try:
+                proc.stdout.close()
+                proc.kill()
+            except Exception:  # noqa: BLE001
+                pass
+        return
+
+
+_UNSET = object()
+_HWACCEL: str | None | object = _UNSET
 
 
 def clean_background(path: str | Path, box: list[int], samples: int = 15,
@@ -195,8 +291,17 @@ def clean_background(path: str | Path, box: list[int], samples: int = 15,
     """Minimap with the moving icons removed: per-pixel median of frames spread over the game."""
     info = probe(path)
     end = end_sec if end_sec is not None else info.duration_sec
-    times = np.linspace(start_sec, max(start_sec, end - 1), samples)
-    crops = [crop_box(read_frame_at(path, float(t)), box) for t in times]
+    # The reported duration can overshoot the last decodable frame, so stay a few seconds
+    # short of it and skip any read that still fails.
+    times = np.linspace(start_sec, max(start_sec, end - 3), samples)
+    crops = []
+    for t in times:
+        try:
+            crops.append(crop_box(read_frame_at(path, float(t)), box))
+        except ValueError:
+            continue
+    if not crops:
+        raise ValueError(f"could not read any frame from {path}")
     return np.median(np.stack(crops), axis=0).astype(np.uint8)
 
 

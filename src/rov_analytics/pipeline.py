@@ -3,16 +3,41 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Iterator
 
 import cv2
+import numpy as np
 
 from . import analytics, render
 from .calibrate import template_path
 from .config import SourceConfig
 from .detect import IconDetector, load_template
-from .track import Tracker
+from .track import TrackPoint, Tracker
 from .video import clean_background, crop_box, iter_frames, read_frame_at
 from .zones import load_zones
+
+
+def iter_track(
+    video: str | Path,
+    source: SourceConfig,
+    hero: str,
+    side: str,
+    templates_dir: str | Path,
+    sample_fps: float = 2.0,
+    start_sec: float = 0.0,
+    end_sec: float | None = None,
+    game_start_sec: float | None = None,
+    min_score: float = 0.55,
+) -> Iterator[tuple[np.ndarray, TrackPoint]]:
+    """Yield (minimap crop, track point) for every sampled frame. The web app and the CLI
+    both sit on top of this."""
+    template = load_template(template_path(templates_dir, hero, source.name, side))
+    detector = IconDetector(template, source, side, min_score=min_score)
+    tracker = Tracker(sample_fps=sample_fps)
+    for frame in iter_frames(video, sample_fps, start_sec, end_sec, game_start_sec, crop=source.minimap_box):
+        minimap = frame.image
+        det = detector.detect(minimap)
+        yield minimap, tracker.update(det, frame.game_sec, frame.video_sec)
 
 
 def track_video(
@@ -33,20 +58,14 @@ def track_video(
     debug_video: str | Path | None = None,
     progress: bool = True,
 ) -> tuple[list[analytics.TrackRow], dict]:
-    tpl_path = template_path(templates_dir, hero, source.name, side)
-    template = load_template(tpl_path)
-    detector = IconDetector(template, source, side, min_score=min_score)
-    tracker = Tracker(sample_fps=sample_fps)
     zones = load_zones(zones_path)
     match_id = match_id or Path(video).stem
 
     debug = render.DebugVideo(debug_video, source.crop_size, sample_fps) if debug_video else None
     points = []
     n = 0
-    for frame in iter_frames(video, sample_fps, start_sec, end_sec, game_start_sec):
-        minimap = crop_box(frame.image, source.minimap_box)
-        det = detector.detect(minimap)
-        pt = tracker.update(det, frame.game_sec, frame.video_sec)
+    for minimap, pt in iter_track(video, source, hero, side, templates_dir, sample_fps,
+                                  start_sec, end_sec, game_start_sec, min_score):
         points.append(pt)
         if debug:
             debug.write(minimap, pt.x_norm, pt.y_norm, pt.score, pt.status, pt.game_sec)
@@ -85,8 +104,6 @@ def render_phases(
     sample_fps: float = 2.0,
 ) -> dict:
     """One temperature heatmap per game-time window, plus a combined sheet and per-phase stats."""
-    import numpy as np
-
     phases = phases or DEFAULT_PHASES
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)

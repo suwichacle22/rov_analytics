@@ -4,14 +4,18 @@ version = "0.1.0"
 description = "Track pro Arena of Valor (RoV) players on the minimap from video and build positioning analytics."
 requires-python = ">=3.14"
 dependencies = [
+    "fastapi>=0.141.1",
     "imageio-ffmpeg>=0.6.0",
     "numpy>=2.5.3",
     "opencv-python>=5.0.0.93",
+    "python-multipart>=0.0.32",
+    "uvicorn[standard]>=0.53.0",
     "yt-dlp>=2026.8.19",
 ]
 
 [project.scripts]
 rov = "rov_analytics.cli:main"
+rov-web = "rov_analytics.web.server:main"
 
 [build-system]
 requires = ["hatchling"]

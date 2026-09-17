@@ -8,12 +8,30 @@ Research behind the design: `docs/research/moba-positioning-analytics-research.h
 
 ## Setup
 
-Python 3.14 and uv. No ffmpeg needed.
+Python 3.14 and uv. ffmpeg is bundled through a pip package, nothing else to install.
 
 ```
 python -m uv sync
 python -m uv run rov --help
 ```
+
+## Web app: paste a link, watch the heatmap build
+
+```
+python -m uv run rov-web
+```
+
+Open http://127.0.0.1:8000. The page has three steps:
+
+1. **Video.** Paste a YouTube link with the game's start and end time in the VOD and press "Fetch clip", or pick a clip fetched earlier. Local file paths work too.
+2. **Hero.** Choose the broadcast layout and the hero template. If the hero has no template yet, open "Make a new template", type the hero name, pick a clip second where the icon is clearly visible, press "Show", and click the centre of the icon on the minimap. The template is saved and selected.
+3. **Track.** Enter the clip second where the in-game clock reads 0:00 (negative if the clip starts after 0:00) and press "Start tracking".
+
+While it runs you see the live minimap with a circle on the tracked hero, the heatmap growing once per game second, game time, coverage, the current zone and time per zone. When it finishes, the final heatmap, path image, four phase heatmaps and the CSV are linked at the bottom. Outputs land in `data/tracks/` exactly as with the CLI.
+
+Video decoding uses the bundled ffmpeg with GPU acceleration when available (CUDA, then D3D11VA, then software). On an NVIDIA machine a 16-minute 1080p60 game processes in about 2 to 3 minutes.
+
+The app runs on your machine because the tracking needs Python and OpenCV. It is not deployable to Vercel or Cloudflare as is; a cloud version would need a server that can run the worker.
 
 ## Workflow for a real match
 
@@ -137,7 +155,7 @@ Expected: median error under 1 px, misses only during the teleport and the overl
 ```
 src/rov_analytics/
   config.py     source config: minimap box, icon size, ring colours
-  video.py      yt-dlp download, frame iterator
+  video.py      yt-dlp download, ffmpeg/OpenCV frame iterator, clean background
   calibrate.py  interactive box and colour pickers, template saving
   detect.py     template match gated by ring colour
   track.py      jump rejection, hold, re-acquire
@@ -147,6 +165,7 @@ src/rov_analytics/
   pipeline.py   glue
   match.py      match manifest: video, source, who played which hero
   cli.py        `rov` commands
+  web/          FastAPI server and single-page app (`rov-web`)
 scripts/        synthetic video generator and evaluator
 configs/        source configs, match manifests, zone files
 templates/      hero icon templates per source
@@ -159,4 +178,4 @@ data/           videos and outputs (ignored by git)
 - Read the game clock by OCR so `--start` is found automatically.
 - Detect when the minimap is covered by an overlay instead of relying on low scores.
 - Swap template matching for a small YOLO trained on synthetic minimaps once real broadcasts show its limits.
-- Web app: paste a YouTube link, type start and end time and the player to focus, and watch the heatmap build up in real time as the video is processed. Then a dashboard (TanStack Start plus Convex) with a timeline scrubber, heatmap filters and two-player comparison.
+- Dashboard over many games (TanStack Start plus Convex): timeline scrubber, heatmap filters, two-player comparison, per-hero and per-team baselines.

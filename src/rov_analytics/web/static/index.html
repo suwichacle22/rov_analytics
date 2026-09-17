@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RoV live heatmap</title>
+<style>
+  :root {
+    --bg: #000000; --surface: #111111; --surface-2: #1A1A1A; --border: #2E2E2E;
+    --text: #C9C9C9; --text-muted: #8A8A8A; --text-strong: #FFFFFF; --critical: #FF453A;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 1400px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+  header { display: flex; align-items: baseline; gap: 14px; }
+  h1 { margin: 0; color: var(--text-strong); font-size: 20px; font-weight: 700; }
+  h2 { margin: 0; color: var(--text-strong); font-size: 14px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+  .muted { color: var(--text-muted); }
+  .grid { display: grid; grid-template-columns: 360px 1fr; gap: 20px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .col { display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-muted); }
+  input, select { background: var(--surface-2); color: var(--text-strong); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font: inherit; }
+  input:focus, select:focus, button:focus-visible { outline: 2px solid var(--text-strong); outline-offset: 1px; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+  button { background: var(--text-strong); color: #000; border: 1px solid var(--text-strong); border-radius: 6px; padding: 9px 12px; font: inherit; font-weight: 700; cursor: pointer; }
+  button.secondary { background: var(--surface-2); color: var(--text-strong); border-color: var(--border); }
+  button:disabled { opacity: 0.4; cursor: default; }
+  .status { font-size: 12px; color: var(--text-muted); min-height: 18px; }
+  .status.err { color: var(--critical); font-weight: 700; }
+  .bar { height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+  .bar > div { height: 100%; width: 0; background: var(--text-strong); transition: width 0.3s linear; }
+  .views { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 1100px) { .views { grid-template-columns: 1fr; } }
+  .view img { width: 100%; height: auto; display: block; border-radius: 6px; background: var(--surface-2); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .stat { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; }
+  .stat .k { font-size: 11px; color: var(--text-muted); }
+  .stat .v { font-size: 18px; color: var(--text-strong); font-weight: 700; font-variant-numeric: tabular-nums; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  td, th { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--border); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  th { color: var(--text-strong); font-weight: 700; }
+  #pick { cursor: crosshair; max-width: 100%; border: 1px solid var(--border); border-radius: 6px; }
+  .tpl-preview { display: flex; align-items: center; gap: 10px; }
+  .tpl-preview img { image-rendering: pixelated; border: 1px solid var(--border); border-radius: 4px; }
+  a { color: var(--text-strong); }
+  details summary { cursor: pointer; color: var(--text-strong); font-weight: 700; }
+  code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>RoV live heatmap</h1>
+    <span class="muted">paste a VOD link, choose the hero, watch the map warm up</span>
+  </header>
+
+  <div class="grid">
+    <!-- left: controls -->
+    <div class="col">
+      <section class="card">
+        <h2>1. Video</h2>
+        <label>YouTube link or local file path
+          <input id="url" placeholder="https://www.youtube.com/watch?v=..." value="">
+        </label>
+        <div class="row">
+          <label>Game starts at (in the VOD)<input id="from" placeholder="49:57"></label>
+          <label>Game ends at<input id="to" placeholder="1:06:19"></label>
+        </div>
+        <div class="row">
+          <button id="btnDownload" class="secondary">Fetch clip</button>
+          <select id="videos" title="Previously fetched clips"></select>
+        </div>
+        <div class="bar"><div id="dlbar"></div></div>
+        <div id="dlstatus" class="status"></div>
+      </section>
+
+      <section class="card">
+        <h2>2. Hero</h2>
+        <label>Broadcast layout<select id="source"></select></label>
+        <div class="row">
+          <label>Hero (template)<select id="hero"></select></label>
+          <label>Side<select id="side"><option value="blue">blue</option><option value="red">red</option></select></label>
+        </div>
+        <label>Player name (label only)<input id="player" placeholder="FS Overone"></label>
+        <details>
+          <summary>Make a new template</summary>
+          <div class="col" style="margin-top:8px">
+            <div class="row">
+              <label>Hero name<input id="tplHero" placeholder="zill"></label>
+              <label>Clip second<input id="tplTime" type="number" value="5" step="0.5"></label>
+              <button id="btnFrame" class="secondary" style="align-self:end">Show</button>
+            </div>
+            <div class="muted" style="font-size:12px">Click the centre of the hero's icon on the minimap.</div>
+            <img id="pick" alt="" hidden>
+            <div id="tplResult" class="tpl-preview"></div>
+          </div>
+        </details>
+      </section>
+
+      <section class="card">
+        <h2>3. Track</h2>
+        <div class="row">
+          <label>Clock 0:00 at clip second<input id="gameStart" type="number" value="0" step="0.5"></label>
+          <label>Samples per second<input id="fps" type="number" value="2" step="1" min="1" max="10"></label>
+        </div>
+        <button id="btnTrack">Start tracking</button>
+        <div class="bar"><div id="trbar"></div></div>
+        <div id="trstatus" class="status"></div>
+      </section>
+    </div>
+
+    <!-- right: live views -->
+    <div class="col">
+      <div class="stats">
+        <div class="stat"><div class="k">game time</div><div class="v" id="sGame">0:00</div></div>
+        <div class="stat"><div class="k">tracked</div><div class="v" id="sTracked">0 s</div></div>
+        <div class="stat"><div class="k">coverage</div><div class="v" id="sCov">0%</div></div>
+        <div class="stat"><div class="k">zone now</div><div class="v" id="sZone" style="font-size:14px">-</div></div>
+      </div>
+      <div class="views">
+        <section class="card view">
+          <h2>Heatmap so far</h2>
+          <img id="heat" alt="heatmap">
+        </section>
+        <section class="card view">
+          <h2>Live minimap</h2>
+          <img id="live" alt="live minimap">
+          <div class="muted" id="liveInfo" style="font-size:12px"></div>
+        </section>
+      </div>
+      <section class="card">
+        <h2>Time in zone</h2>
+        <table><thead><tr><th>zone</th><th class="num">seconds</th></tr></thead><tbody id="zones"></tbody></table>
+      </section>
+      <section class="card" id="results" hidden>
+        <h2>Results</h2>
+        <div id="links"></div>
+        <img id="phases" alt="phase heatmaps" style="width:100%;border-radius:6px">
+      </section>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = s => `${Math.floor(Math.max(0,s)/60)}:${String(Math.floor(Math.max(0,s)%60)).padStart(2,'0')}`;
+let currentVideo = "";
+
+async function api(path, body) {
+  const r = await fetch(path, body ? {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)} : {});
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.detail || JSON.stringify(j));
+  return j;
+}
+
+async function loadSources() {
+  const srcs = await api('/api/sources');
+  $('source').innerHTML = srcs.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+  await loadTemplates();
+}
+async function loadTemplates() {
+  const heroes = await api('/api/templates?source=' + encodeURIComponent($('source').value));
+  $('hero').innerHTML = heroes.map(h => `<option>${h}</option>`).join('') || '<option value="">(no templates yet)</option>';
+}
+async function loadVideos() {
+  const vids = await api('/api/videos');
+  $('videos').innerHTML = '<option value="">fetched clips...</option>' + vids.map(v => `<option value="${v.path}">${v.name} (${v.mb} MB)</option>`).join('');
+}
+$('source').onchange = loadTemplates;
+$('videos').onchange = () => { if ($('videos').value) { $('url').value = $('videos').value; currentVideo = $('videos').value; $('from').value=''; $('to').value=''; } };
+
+function listen(jobId, handlers) {
+  const es = new EventSource(`/api/jobs/${jobId}/events`);
+  for (const [ev, fn] of Object.entries(handlers)) es.addEventListener(ev, e => fn(JSON.parse(e.data)));
+  es.addEventListener('done', () => es.close());
+  es.addEventListener('error', () => es.close());
+  return es;
+}
+
+$('btnDownload').onclick = async () => {
+  const st = $('dlstatus'); st.className = 'status'; st.textContent = 'starting ...';
+  $('btnDownload').disabled = true;
+  try {
+    const {job_id} = await api('/api/download', {url: $('url').value, start: $('from').value || null, end: $('to').value || null});
+    listen(job_id, {
+      status: d => { st.textContent = d.message; if (d.video) currentVideo = d.video; },
+      done: d => { st.textContent = `ready: ${d.width}x${d.height}, ${d.fps} fps, ${(d.duration_sec/60).toFixed(1)} min`; currentVideo = d.video; $('dlbar').style.width='100%'; $('btnDownload').disabled=false; loadVideos(); },
+      error: d => { st.className='status err'; st.textContent = d.message; $('btnDownload').disabled=false; },
+    });
+  } catch (e) { st.className='status err'; st.textContent = e.message; $('btnDownload').disabled=false; }
+};
+
+$('btnFrame').onclick = async () => {
+  const v = currentVideo || $('url').value;
+  if (!v || v.startsWith('http')) { $('tplResult').textContent = 'fetch the clip first'; return; }
+  const img = $('pick');
+  img.src = `/api/frame?video=${encodeURIComponent(v)}&t=${$('tplTime').value}&source=${encodeURIComponent($('source').value)}&scale=3&_=${Date.now()}`;
+  img.hidden = false;
+};
+$('pick').onclick = async e => {
+  const img = $('pick');
+  const rect = img.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (img.naturalWidth / rect.width);
+  const y = (e.clientY - rect.top) * (img.naturalHeight / rect.height);
+  const hero = $('tplHero').value.trim();
+  if (!hero) { $('tplResult').textContent = 'type a hero name first'; return; }
+  try {
+    const r = await api('/api/template', {video: currentVideo || $('url').value, source: $('source').value, hero, t: +$('tplTime').value, x, y, scale: 3});
+    $('tplResult').innerHTML = `<img src="${r.preview}" width="${r.size[0]*4}" height="${r.size[1]*4}"> <span>saved <code>${r.saved}</code></span>`;
+    await loadTemplates(); $('hero').value = hero.toLowerCase();
+  } catch (err) { $('tplResult').textContent = err.message; }
+};
+
+$('btnTrack').onclick = async () => {
+  const st = $('trstatus'); st.className='status'; st.textContent = 'starting ...';
+  $('btnTrack').disabled = true; $('results').hidden = true; $('trbar').style.width = '0';
+  try {
+    const {job_id} = await api('/api/track', {
+      url: $('url').value, start: $('from').value || null, end: $('to').value || null,
+      source: $('source').value, hero: $('hero').value, side: $('side').value, player: $('player').value,
+      game_start: +$('gameStart').value, fps: +$('fps').value,
+    });
+    listen(job_id, {
+      status: d => { st.textContent = d.message; },
+      frame: d => {
+        $('live').src = 'data:image/jpeg;base64,' + d.minimap;
+        $('liveInfo').textContent = `clip ${fmt(d.video_sec)}  ·  ${d.status}  ·  score ${d.score}`;
+        $('sGame').textContent = fmt(d.game_sec); $('sTracked').textContent = `${d.tracked_sec} s`;
+        $('sCov').textContent = `${Math.round(d.coverage*100)}%`; $('sZone').textContent = d.zone || '-';
+        $('trbar').style.width = `${Math.round(d.progress*100)}%`;
+        $('zones').innerHTML = d.top_zones.map(z => `<tr><td>${z.zone}</td><td class="num">${z.sec}</td></tr>`).join('');
+      },
+      heatmap: d => { $('heat').src = 'data:image/jpeg;base64,' + d.image; },
+      done: d => {
+        st.textContent = 'done'; $('btnTrack').disabled = false; $('trbar').style.width='100%';
+        $('heat').src = d.heatmap + '?_=' + Date.now();
+        $('phases').src = d.phases_sheet + '?_=' + Date.now();
+        $('links').innerHTML = `<a href="${d.csv}" download>track CSV</a> · <a href="${d.heatmap}" target="_blank">heatmap PNG</a> · <a href="${d.path}" target="_blank">path PNG</a> · <a href="${d.phases_sheet}" target="_blank">phases PNG</a>`;
+        $('zones').innerHTML = Object.entries(d.summary.dwell_seconds).map(([z,s]) => `<tr><td>${z}</td><td class="num">${s}</td></tr>`).join('');
+        $('results').hidden = false;
+      },
+      error: d => { st.className='status err'; st.textContent = d.message; $('btnTrack').disabled = false; },
+    });
+  } catch (e) { st.className='status err'; st.textContent = e.message; $('btnTrack').disabled = false; }
+};
+
+loadSources(); loadVideos();
+</script>
+</body>
+</html>
