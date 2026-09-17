@@ -153,6 +153,7 @@ def _run_track_job(job: Job) -> None:
         dwell: dict[str, float] = {}
         n_valid = 0
         t_last_heat = 0.0
+        recent_scores: list[float] = []
         job.emit("status", {"stage": "track", "message": "tracking ..."})
 
         for i, (minimap, pt) in enumerate(pipeline.iter_track(
@@ -174,7 +175,11 @@ def _run_track_job(job: Job) -> None:
                 colour = (255, 255, 255) if pt.status == "detected" else (58, 69, 255)
                 cv2.circle(live, (int(pt.x_norm * live.shape[1]), int(pt.y_norm * live.shape[0])), 18, colour, 2, cv2.LINE_AA)
             top = sorted(dwell.items(), key=lambda kv: -kv[1])[:6]
+            recent_scores = (recent_scores + [pt.score])[-40:]
+            recent_detected = sum(1 for q in points[-40:] if q.status == "detected") / min(40, len(points))
             job.emit("frame", {
+                "recent_score": round(sum(recent_scores) / len(recent_scores), 2),
+                "recent_detected": round(recent_detected, 2),
                 "minimap": _jpeg_b64(live, 70),
                 "game_sec": round(pt.game_sec, 1),
                 "video_sec": round(pt.video_sec, 1),
@@ -287,6 +292,19 @@ def list_sources() -> list[dict]:
 def list_templates(source: str) -> list[str]:
     d = TEMPLATES / source
     return sorted(p.stem for p in d.glob("*.png")) if d.exists() else []
+
+
+@app.get("/api/template-image")
+def template_image(source: str, hero: str, scale: int = 4) -> Response:
+    """The saved face for a hero, enlarged, so the page can show what will be tracked."""
+    try:
+        path = template_path(TEMPLATES, hero, source)
+    except FileNotFoundError as ex:
+        raise HTTPException(404, str(ex)) from ex
+    img = cv2.imread(str(path))
+    big = cv2.resize(img, None, fx=scale, fy=scale, interpolation=cv2.INTER_NEAREST)
+    ok, buf = cv2.imencode(".png", big)
+    return Response(content=buf.tobytes(), media_type="image/png")
 
 
 @app.get("/api/videos")

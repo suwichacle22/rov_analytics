@@ -114,7 +114,8 @@
           <label>Hero (template)<select id="hero"></select></label>
           <label>Side<select id="side"><option value="blue">blue</option><option value="red">red</option></select></label>
         </div>
-        <label>Player name (label only)<input id="player" placeholder="FS Overone"></label>
+        <div class="tpl-preview" id="heroPreview"><img id="heroFace" alt="" width="88" height="88"><span class="muted" style="font-size:12px">This is the face that will be tracked. Templates are heroes, not players: if the player picked a different hero this game, make a new template below.</span></div>
+        <label>Player name (label only, optional)<input id="player" placeholder="FS Overone"></label>
         <details>
           <summary>Make a new template</summary>
           <div class="col" style="margin-top:8px">
@@ -243,10 +244,16 @@ async function loadSources() {
   $('source').innerHTML = srcs.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
   await loadTemplates();
 }
+function showHeroFace() {
+  const h = $('hero').value;
+  $('heroFace').src = h ? `/api/template-image?source=${encodeURIComponent($('source').value)}&hero=${encodeURIComponent(h)}&_=${Date.now()}` : '';
+}
 async function loadTemplates() {
   const heroes = await api('/api/templates?source=' + encodeURIComponent($('source').value));
   $('hero').innerHTML = heroes.map(h => `<option>${h}</option>`).join('') || '<option value="">(no templates yet)</option>';
+  showHeroFace();
 }
+$('hero').onchange = showHeroFace;
 async function loadVideos() {
   const vids = await api('/api/videos');
   videoMeta = Object.fromEntries(vids.map(v => [v.path, v.start_offset]));
@@ -300,7 +307,7 @@ $('pick').onclick = async e => {
   try {
     const r = await api('/api/template', {video: currentVideo || $('url').value, source: $('source').value, hero, t: +$('tplTime').value, x, y, scale: 3});
     $('tplResult').innerHTML = `<img src="${r.preview}" width="${r.size[0]*4}" height="${r.size[1]*4}"> <span>saved <code>${r.saved}</code></span>`;
-    await loadTemplates(); $('hero').value = hero.toLowerCase();
+    await loadTemplates(); $('hero').value = hero.toLowerCase(); showHeroFace();
   } catch (err) { $('tplResult').textContent = err.message; }
 };
 
@@ -317,7 +324,10 @@ $('btnTrack').onclick = async () => {
       status: d => { st.textContent = d.message; },
       frame: d => {
         $('live').src = 'data:image/jpeg;base64,' + d.minimap;
-        $('liveInfo').textContent = `clip ${fmt(d.video_sec)}  ·  ${d.status}  ·  score ${d.score}`;
+        const weak = d.recent_score < 0.65 || d.recent_detected < 0.5;
+        $('liveInfo').textContent = `clip ${fmt(d.video_sec)}  ·  ${d.status}  ·  score ${d.score}  ·  last 20 s: ${Math.round(d.recent_detected*100)}% found, avg score ${d.recent_score}` + (weak ? '  ·  LOW CONFIDENCE: is this the right hero template?' : '');
+        $('liveInfo').style.color = weak ? 'var(--critical)' : '';
+        $('liveInfo').style.fontWeight = weak ? '700' : '';
         $('sGame').textContent = fmt(d.game_sec); $('sTracked').textContent = `${d.tracked_sec} s`;
         $('sCov').textContent = `${Math.round(d.coverage*100)}%`; $('sZone').textContent = d.zone || '-';
         $('trbar').style.width = `${Math.round(d.progress*100)}%`;
