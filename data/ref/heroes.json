@@ -1,0 +1,537 @@
+{
+  "source": "arenaofvalor.fandom.com Category:Heroes (2026-09-24) plus Celica and Mortos from a Thai RPL overlay project; edit freely; Flowborn is split into one hero per form (add more forms with Add hero)",
+  "heroes": [
+    {
+      "id": "airi",
+      "name": "Airi"
+    },
+    {
+      "id": "aleister",
+      "name": "Aleister"
+    },
+    {
+      "id": "alice",
+      "name": "Alice"
+    },
+    {
+      "id": "allain",
+      "name": "Allain"
+    },
+    {
+      "id": "amily",
+      "name": "Amily"
+    },
+    {
+      "id": "annette",
+      "name": "Annette"
+    },
+    {
+      "id": "aoi",
+      "name": "Aoi"
+    },
+    {
+      "id": "arduin",
+      "name": "Arduin"
+    },
+    {
+      "id": "arthur",
+      "name": "Arthur"
+    },
+    {
+      "id": "arum",
+      "name": "Arum"
+    },
+    {
+      "id": "astrid",
+      "name": "Astrid"
+    },
+    {
+      "id": "ata",
+      "name": "Ata"
+    },
+    {
+      "id": "aya",
+      "name": "Aya"
+    },
+    {
+      "id": "azzen-ka",
+      "name": "Azzen'Ka"
+    },
+    {
+      "id": "baldum",
+      "name": "Baldum"
+    },
+    {
+      "id": "bijan",
+      "name": "Bijan"
+    },
+    {
+      "id": "billow",
+      "name": "Billow"
+    },
+    {
+      "id": "biron",
+      "name": "Biron"
+    },
+    {
+      "id": "bolt-baron",
+      "name": "Bolt Baron"
+    },
+    {
+      "id": "bonnie",
+      "name": "Bonnie"
+    },
+    {
+      "id": "bright",
+      "name": "Bright"
+    },
+    {
+      "id": "brunhilda",
+      "name": "Brunhilda"
+    },
+    {
+      "id": "butterfly",
+      "name": "Butterfly"
+    },
+    {
+      "id": "capheny",
+      "name": "Capheny"
+    },
+    {
+      "id": "celica",
+      "name": "Celica"
+    },
+    {
+      "id": "charlotte",
+      "name": "Charlotte"
+    },
+    {
+      "id": "chaugnar",
+      "name": "Chaugnar"
+    },
+    {
+      "id": "cresht",
+      "name": "Cresht"
+    },
+    {
+      "id": "d-arcy",
+      "name": "D'Arcy"
+    },
+    {
+      "id": "dextra",
+      "name": "Dextra"
+    },
+    {
+      "id": "diaochan",
+      "name": "Diaochan"
+    },
+    {
+      "id": "dirak",
+      "name": "Dirak"
+    },
+    {
+      "id": "dolia",
+      "name": "Dolia"
+    },
+    {
+      "id": "dyadia",
+      "name": "Dyadia"
+    },
+    {
+      "id": "edras",
+      "name": "Edras"
+    },
+    {
+      "id": "eland-orr",
+      "name": "Eland'orr"
+    },
+    {
+      "id": "elsu",
+      "name": "Elsu"
+    },
+    {
+      "id": "enzo",
+      "name": "Enzo"
+    },
+    {
+      "id": "erin",
+      "name": "Erin"
+    },
+    {
+      "id": "errol",
+      "name": "Errol"
+    },
+    {
+      "id": "fennik",
+      "name": "Fennik"
+    },
+    {
+      "id": "florentino",
+      "name": "Florentino"
+    },
+    {
+      "id": "flowborn-carry",
+      "name": "Flowborn (Carry)"
+    },
+    {
+      "id": "flowborn-mage",
+      "name": "Flowborn (Mage)"
+    },
+    {
+      "id": "gildur",
+      "name": "Gildur"
+    },
+    {
+      "id": "goverra",
+      "name": "Goverra"
+    },
+    {
+      "id": "grakk",
+      "name": "Grakk"
+    },
+    {
+      "id": "hayate",
+      "name": "Hayate"
+    },
+    {
+      "id": "heino",
+      "name": "Heino"
+    },
+    {
+      "id": "helen",
+      "name": "Helen"
+    },
+    {
+      "id": "iggy",
+      "name": "Iggy"
+    },
+    {
+      "id": "ignis",
+      "name": "Ignis"
+    },
+    {
+      "id": "ilumia",
+      "name": "Ilumia"
+    },
+    {
+      "id": "ishar",
+      "name": "Ishar"
+    },
+    {
+      "id": "jinnar",
+      "name": "Jinnar"
+    },
+    {
+      "id": "kahlii",
+      "name": "Kahlii"
+    },
+    {
+      "id": "kaine",
+      "name": "Kaine"
+    },
+    {
+      "id": "keera",
+      "name": "Keera"
+    },
+    {
+      "id": "kil-groth",
+      "name": "Kil'Groth"
+    },
+    {
+      "id": "kriknak",
+      "name": "Kriknak"
+    },
+    {
+      "id": "krixi",
+      "name": "Krixi"
+    },
+    {
+      "id": "krizzix",
+      "name": "Krizzix"
+    },
+    {
+      "id": "lauriel",
+      "name": "Lauriel"
+    },
+    {
+      "id": "laville",
+      "name": "Laville"
+    },
+    {
+      "id": "liliana",
+      "name": "Liliana"
+    },
+    {
+      "id": "lindis",
+      "name": "Lindis"
+    },
+    {
+      "id": "lorion",
+      "name": "Lorion"
+    },
+    {
+      "id": "lu-bu",
+      "name": "Lu Bu"
+    },
+    {
+      "id": "lumburr",
+      "name": "Lumburr"
+    },
+    {
+      "id": "maloch",
+      "name": "Maloch"
+    },
+    {
+      "id": "marja",
+      "name": "Marja"
+    },
+    {
+      "id": "max",
+      "name": "Max"
+    },
+    {
+      "id": "mganga",
+      "name": "Mganga"
+    },
+    {
+      "id": "mina",
+      "name": "Mina"
+    },
+    {
+      "id": "ming",
+      "name": "Ming"
+    },
+    {
+      "id": "moren",
+      "name": "Moren"
+    },
+    {
+      "id": "mortos",
+      "name": "Mortos"
+    },
+    {
+      "id": "murad",
+      "name": "Murad"
+    },
+    {
+      "id": "nakroth",
+      "name": "Nakroth"
+    },
+    {
+      "id": "natalya",
+      "name": "Natalya"
+    },
+    {
+      "id": "omega",
+      "name": "Omega"
+    },
+    {
+      "id": "omen",
+      "name": "Omen"
+    },
+    {
+      "id": "ormarr",
+      "name": "Ormarr"
+    },
+    {
+      "id": "paine",
+      "name": "Paine"
+    },
+    {
+      "id": "peura",
+      "name": "Peura"
+    },
+    {
+      "id": "preyta",
+      "name": "Preyta"
+    },
+    {
+      "id": "qi",
+      "name": "Qi"
+    },
+    {
+      "id": "quillen",
+      "name": "Quillen"
+    },
+    {
+      "id": "raz",
+      "name": "Raz"
+    },
+    {
+      "id": "riktor",
+      "name": "Riktor"
+    },
+    {
+      "id": "rouie",
+      "name": "Rouie"
+    },
+    {
+      "id": "rourke",
+      "name": "Rourke"
+    },
+    {
+      "id": "roxie",
+      "name": "Roxie"
+    },
+    {
+      "id": "ryoma",
+      "name": "Ryoma"
+    },
+    {
+      "id": "sephera",
+      "name": "Sephera"
+    },
+    {
+      "id": "sinestrea",
+      "name": "Sinestrea"
+    },
+    {
+      "id": "skud",
+      "name": "Skud"
+    },
+    {
+      "id": "slimz",
+      "name": "Slimz"
+    },
+    {
+      "id": "stuart",
+      "name": "Stuart"
+    },
+    {
+      "id": "superman",
+      "name": "Superman"
+    },
+    {
+      "id": "taara",
+      "name": "Taara"
+    },
+    {
+      "id": "tachi",
+      "name": "Tachi"
+    },
+    {
+      "id": "tamyn",
+      "name": "Tamyn"
+    },
+    {
+      "id": "teemee",
+      "name": "TeeMee"
+    },
+    {
+      "id": "teeri",
+      "name": "Teeri"
+    },
+    {
+      "id": "tel-annas",
+      "name": "Tel'Annas"
+    },
+    {
+      "id": "thane",
+      "name": "Thane"
+    },
+    {
+      "id": "the-flash",
+      "name": "The Flash"
+    },
+    {
+      "id": "thorne",
+      "name": "Thorne"
+    },
+    {
+      "id": "toro",
+      "name": "Toro"
+    },
+    {
+      "id": "tulen",
+      "name": "Tulen"
+    },
+    {
+      "id": "unnamed-blue-armour",
+      "name": "Unnamed (blue armour)"
+    },
+    {
+      "id": "valhein",
+      "name": "Valhein"
+    },
+    {
+      "id": "veera",
+      "name": "Veera"
+    },
+    {
+      "id": "veres",
+      "name": "Veres"
+    },
+    {
+      "id": "violet",
+      "name": "Violet"
+    },
+    {
+      "id": "volkath",
+      "name": "Volkath"
+    },
+    {
+      "id": "wiro",
+      "name": "Wiro"
+    },
+    {
+      "id": "wisp",
+      "name": "Wisp"
+    },
+    {
+      "id": "wonder-woman",
+      "name": "Wonder Woman"
+    },
+    {
+      "id": "wukong",
+      "name": "Wukong"
+    },
+    {
+      "id": "xeniel",
+      "name": "Xeniel"
+    },
+    {
+      "id": "y-bneth",
+      "name": "Y'bneth"
+    },
+    {
+      "id": "yan",
+      "name": "Yan"
+    },
+    {
+      "id": "yena",
+      "name": "Yena"
+    },
+    {
+      "id": "yorn",
+      "name": "Yorn"
+    },
+    {
+      "id": "yue",
+      "name": "Yue"
+    },
+    {
+      "id": "zanis",
+      "name": "Zanis"
+    },
+    {
+      "id": "zata",
+      "name": "Zata"
+    },
+    {
+      "id": "zephys",
+      "name": "Zephys"
+    },
+    {
+      "id": "zill",
+      "name": "Zill"
+    },
+    {
+      "id": "zip",
+      "name": "Zip"
+    },
+    {
+      "id": "zuka",
+      "name": "Zuka"
+    }
+  ]
+}

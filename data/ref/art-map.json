@@ -1,0 +1,1694 @@
+{
+  "note": "hero id -> art file per kind; reviewed on the Heroes page",
+  "map": {
+    "airi": {
+      "ban": "Airi.png",
+      "pick": "Airi.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg25b52sew7em141dzdr12hs4x8f5k4t",
+        "file": "Airi.png:12624"
+      },
+      "pickStorage": {
+        "id": "kg28g87dwxewphcs7hmxs0k9s18f563m",
+        "file": "Airi.png:81444"
+      }
+    },
+    "aleister": {
+      "ban": "Aleister.png",
+      "pick": "Aleister.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2cecqpxrm7qy7g151fxw4adh8f4y95",
+        "file": "Aleister.png:13499"
+      },
+      "pickStorage": {
+        "id": "kg2ctpjy6yqwfgydsaqvr6w3m18f45tv",
+        "file": "Aleister.png:82315"
+      }
+    },
+    "alice": {
+      "ban": "Alice.png",
+      "pick": "Alice.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2e6f8sbrnzcmafr8dxtv5grd8f5mtw",
+        "file": "Alice.png:14204"
+      },
+      "pickStorage": {
+        "id": "kg2c9kfydcbp7p4ez6je2ze63x8f574q",
+        "file": "Alice.png:90881"
+      }
+    },
+    "allain": {
+      "ban": "Allain.png",
+      "pick": "Allain.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2fzadvdvkyepfb4tz02b8y758f4bjz",
+        "file": "Allain.png:13107"
+      },
+      "pickStorage": {
+        "id": "kg26vvq41zn0kfn9emdpra0g798f5y16",
+        "file": "Allain.png:85126"
+      }
+    },
+    "amily": {
+      "ban": "Amily.png",
+      "pick": "Amily.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg21nnbm6va8egnzdrf63cc4kn8f55qb",
+        "file": "Amily.png:12885"
+      },
+      "pickStorage": {
+        "id": "kg2517zajzw10q7npczkbd2c1x8f5rcb",
+        "file": "Amily.png:81652"
+      }
+    },
+    "annette": {
+      "ban": "Annette.png",
+      "pick": "Annette.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg24ghaysm9t5dq29xwa3vb39d8f5tk2",
+        "file": "Annette.png:13113"
+      },
+      "pickStorage": {
+        "id": "kg271vpmyhpktwarhgj7zngcqn8f4jf4",
+        "file": "Annette.png:86476"
+      }
+    },
+    "aoi": {
+      "ban": "Aoi.png",
+      "pick": "Aoi.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg26g1jdxfb0jsaws3f1t39y9h8f50m3",
+        "file": "Aoi.png:13040"
+      },
+      "pickStorage": {
+        "id": "kg20mtcbra2a4xedgaj5hetwvh8f4ysx",
+        "file": "Aoi.png:81369"
+      }
+    },
+    "arduin": {
+      "ban": "Arduin.png",
+      "pick": "Arduin.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2cx6h55xg106f1t59f5qreth8f5qnh",
+        "file": "Arduin.png:11852"
+      },
+      "pickStorage": {
+        "id": "kg23f5z8k9as576wn9kvq9rw6h8f4n41",
+        "file": "Arduin.png:79624"
+      }
+    },
+    "arthur": {
+      "ban": null,
+      "pick": null,
+      "checked": false
+    },
+    "arum": {
+      "ban": "Arum.png",
+      "pick": "Arum.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg21j6c9cnxsjmrqkr8238nes58f4t1v",
+        "file": "Arum.png:13819"
+      },
+      "pickStorage": {
+        "id": "kg2b3ffqyqbmqrjqrahmm59px98f4ytm",
+        "file": "Arum.png:88469"
+      }
+    },
+    "astrid": {
+      "ban": "Astrid.png",
+      "pick": "Astrid.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2azqdwzjhakmp1dttxbzgew58f5tef",
+        "file": "Astrid.png:12946"
+      },
+      "pickStorage": {
+        "id": "kg2egfwb9gjve6et2tms44npys8f5fm1",
+        "file": "Astrid.png:86595"
+      }
+    },
+    "ata": {
+      "ban": "Ata.png",
+      "pick": "Ata.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2fht7mz9hbhgrgbryk7229sn8f42cy",
+        "file": "Ata.png:13791"
+      },
+      "pickStorage": {
+        "id": "kg255bw6anxczjmfgwatpc4z658f59s8",
+        "file": "Ata.png:90243"
+      }
+    },
+    "aya": {
+      "ban": "Aya.png",
+      "pick": "Aya.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg29bygr5bny96fnr7rgsmkwbx8f4yxb",
+        "file": "Aya.png:12685"
+      },
+      "pickStorage": {
+        "id": "kg21ftakkft706qt87kw3ty3t98f5cam",
+        "file": "Aya.png:82984"
+      }
+    },
+    "azzen-ka": {
+      "ban": "Azzenka.png",
+      "pick": "Azzenka.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2cqh8qatarfk3m2bgnpypzr18f58kn",
+        "file": "Azzenka.png:11871"
+      },
+      "pickStorage": {
+        "id": "kg2b6syxsh51yjheztfz3cea958f5p1f",
+        "file": "Azzenka.png:76398"
+      }
+    },
+    "baldum": {
+      "ban": "Baldum.png",
+      "pick": "Baldum.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg251ejyh5c45p0e96b8df7bh18f5ss7",
+        "file": "Baldum.png:12355"
+      },
+      "pickStorage": {
+        "id": "kg277tyf63v5akk20dq8vdzf5n8f42vg",
+        "file": "Baldum.png:88279"
+      }
+    },
+    "bijan": {
+      "ban": "Bijan.png",
+      "pick": "Bijan.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2f7sbxwmd0mxxmz0hxtrjw818f4rbx",
+        "file": "Bijan.png:13588"
+      },
+      "pickStorage": {
+        "id": "kg29peadw2whxn3hwnpfvppadh8f4qat",
+        "file": "Bijan.png:86463"
+      }
+    },
+    "billow": {
+      "ban": "Billow.png",
+      "pick": "Billow.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2agcm3qesvkcm1c0jfwdjs3h8f5hkf",
+        "file": "Billow.png:13370"
+      },
+      "pickStorage": {
+        "id": "kg23snyecxp1n9bjghcbkh1axx8f4ebf",
+        "file": "Billow.png:84898"
+      }
+    },
+    "biron": {
+      "ban": "Biron.png",
+      "pick": "Biron.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2dcz0tan7ysnh7zpfjyh7b858f45q0",
+        "file": "Biron.png:12811"
+      },
+      "pickStorage": {
+        "id": "kg2eq8fxxagxxc1j2x8wwc1gn18f5x68",
+        "file": "Biron.png:75913"
+      }
+    },
+    "bolt-baron": {
+      "ban": "BoltBaron.png",
+      "pick": "BoltBaron.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2f6sca5e2fp4v8x21fwbf6a58f5d9h",
+        "file": "BoltBaron.png:11128"
+      },
+      "pickStorage": {
+        "id": "kg21mnw1k11p32y46mxvtemr3s8f4z3x",
+        "file": "BoltBaron.png:69970"
+      }
+    },
+    "bonnie": {
+      "ban": "Bonnie.png",
+      "pick": "Bonnie.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2afw05rqcyefs19bb64eck558f5pn7",
+        "file": "Bonnie.png:12078"
+      },
+      "pickStorage": {
+        "id": "kg28g16stahwbhy1gym70exs798f5nq5",
+        "file": "Bonnie.png:76991"
+      }
+    },
+    "bright": {
+      "ban": "Bright.png",
+      "pick": "Bright.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2fgs4aaj4m2mmh10prd7zqe98f533a",
+        "file": "Bright.png:13043"
+      },
+      "pickStorage": {
+        "id": "kg2byw1tnp1xbza66mjnzftwxs8f4ne0",
+        "file": "Bright.png:84231"
+      }
+    },
+    "brunhilda": {
+      "ban": null,
+      "pick": null,
+      "checked": false
+    },
+    "butterfly": {
+      "ban": "Butterfly.png",
+      "pick": "Butterfly.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg26sys6yb1zgy2ym05scjzmdh8f5qp7",
+        "file": "Butterfly.png:13354"
+      },
+      "pickStorage": {
+        "id": "kg23vag7tb35r0p4x9fe4xeran8f4nna",
+        "file": "Butterfly.png:83826"
+      }
+    },
+    "capheny": {
+      "ban": "Capheny.png",
+      "pick": "Capheny.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2fa972crhxt63edrzgzgptpx8f5p4f",
+        "file": "Capheny.png:12035"
+      },
+      "pickStorage": {
+        "id": "kg28r011bepm8xpavczbzxtr758f4ywv",
+        "file": "Capheny.png:69889"
+      }
+    },
+    "celica": {
+      "ban": "Celica.png",
+      "pick": "Celica.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2483pcjh2k9kry0z3jx3req98f4k8p",
+        "file": "Celica.png:12338"
+      },
+      "pickStorage": {
+        "id": "kg20rgx86ke48txwdc8vw8h3rn8f560x",
+        "file": "Celica.png:81291"
+      }
+    },
+    "charlotte": {
+      "ban": "Charlotte.png",
+      "pick": "Charlotte.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg23p9zwha8p7qgky3cw9jkfch8f5pep",
+        "file": "Charlotte.png:11988"
+      },
+      "pickStorage": {
+        "id": "kg2bck0a7aszx3942rmh4mb65n8f5fs3",
+        "file": "Charlotte.png:78587"
+      }
+    },
+    "chaugnar": {
+      "ban": "Chaugnar.png",
+      "pick": "Chaugnar.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2831wpr6jafahkwf116dct5d8f46yy",
+        "file": "Chaugnar.png:11981"
+      },
+      "pickStorage": {
+        "id": "kg24an8nr4e9d3hqg4qa3304gd8f4b5e",
+        "file": "Chaugnar.png:75017"
+      }
+    },
+    "cresht": {
+      "ban": "Cresht.png",
+      "pick": "Cresht.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2919pmpnmeg5cfmz5ez2dk958f4yne",
+        "file": "Cresht.png:11457"
+      },
+      "pickStorage": {
+        "id": "kg2atee2qm22s1zr7pdvyc5e8d8f5bjc",
+        "file": "Cresht.png:82412"
+      }
+    },
+    "d-arcy": {
+      "ban": "DArcy.png",
+      "pick": "DArcy.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2b578sx5d1mmk0bw4sttr23x8f5tmz",
+        "file": "DArcy.png:12269"
+      },
+      "pickStorage": {
+        "id": "kg23fy0wgf8eqpxpqze6a3hf3d8f4n3f",
+        "file": "DArcy.png:77859"
+      }
+    },
+    "dextra": {
+      "ban": "Dextra.png",
+      "pick": "Dextra.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2ac5ks9pv97n6653h7wpvfg18f46bv",
+        "file": "Dextra.png:11488"
+      },
+      "pickStorage": {
+        "id": "kg274ns9686ngpnt2b148wz59x8f4fkq",
+        "file": "Dextra.png:74361"
+      }
+    },
+    "diaochan": {
+      "ban": "DiaoChan.png",
+      "pick": "DiaoChan.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg236g4hh57rbnv9xsf49jd8618f5d6t",
+        "file": "DiaoChan.png:12900"
+      },
+      "pickStorage": {
+        "id": "kg28chwzsmq2yzxcc8wd79e37h8f5d14",
+        "file": "DiaoChan.png:82422"
+      }
+    },
+    "dirak": {
+      "ban": "Dirak.png",
+      "pick": "Dirak.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg29g3r7cbv38f7w30s8khrg698f4c4g",
+        "file": "Dirak.png:12074"
+      },
+      "pickStorage": {
+        "id": "kg2a75c9m6dnezpwcz4641wqz18f5dvg",
+        "file": "Dirak.png:71536"
+      }
+    },
+    "dolia": {
+      "ban": "Dolia.png",
+      "pick": "Dolia.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg24e4b4p5vf7ycph1axsfp7hh8f44ew",
+        "file": "Dolia.png:12368"
+      },
+      "pickStorage": {
+        "id": "kg25tnzt5fag1ktfy3braj1n6h8f5ay2",
+        "file": "Dolia.png:79206"
+      }
+    },
+    "dyadia": {
+      "ban": "Dyadia.png",
+      "pick": "Dyadia.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg24tdmwqvwjzmtszbwb4mcgyx8f53w4",
+        "file": "Dyadia.png:10990"
+      },
+      "pickStorage": {
+        "id": "kg2fgqvs9qq0f1mbewpvf4c4a18f5h8c",
+        "file": "Dyadia.png:89732"
+      }
+    },
+    "edras": {
+      "ban": "Edras.png",
+      "pick": "Edras.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2b3h9n7dx9fdhtmxkcscksxs8f5ewv",
+        "file": "Edras.png:8401"
+      },
+      "pickStorage": {
+        "id": "kg24867kpb66e6w2k45ka2ysvd8f4jz6",
+        "file": "Edras.png:73064"
+      }
+    },
+    "eland-orr": {
+      "ban": "Elandorr.png",
+      "pick": "Elandorr.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2e354jqkm1q4c0nsnjgasxbs8f5g3q",
+        "file": "Elandorr.png:13401"
+      },
+      "pickStorage": {
+        "id": "kg2er3wkbjckcr9fbd0bmy41ph8f4bc0",
+        "file": "Elandorr.png:79401"
+      }
+    },
+    "elsu": {
+      "ban": "Elsu.png",
+      "pick": "Elsu.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg22f0g4dr9e3j7as7n5jkqemn8f53s8",
+        "file": "Elsu.png:13099"
+      },
+      "pickStorage": {
+        "id": "kg266x5gnp4ds3snncxwkdp6yx8f4r5g",
+        "file": "Elsu.png:78005"
+      }
+    },
+    "enzo": {
+      "ban": "Enzo.png",
+      "pick": "Enzo.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2ez9nz3cpbqmwphtfchyza318f54hf",
+        "file": "Enzo.png:11382"
+      },
+      "pickStorage": {
+        "id": "kg2b3a20tdxyztn3en5swr0cbn8f4v35",
+        "file": "Enzo.png:66772"
+      }
+    },
+    "erin": {
+      "ban": "Erin.png",
+      "pick": "Erin.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2f4eqrxqx90vr5m4vqvd5e0h8f5b0q",
+        "file": "Erin.png:12579"
+      },
+      "pickStorage": {
+        "id": "kg29t5059t6940487gbs57rrzs8f49g6",
+        "file": "Erin.png:83306"
+      }
+    },
+    "errol": {
+      "ban": "Errol.png",
+      "pick": "Errol.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2e4d91k7e1x8t9k0nmx005618f4qra",
+        "file": "Errol.png:12843"
+      },
+      "pickStorage": {
+        "id": "kg269gjz1ner3qtht5kae2g8v58f4jyp",
+        "file": "Errol.png:75360"
+      }
+    },
+    "fennik": {
+      "ban": "Fennik.png",
+      "pick": "Fennik.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg25b3ee8cbta6m1nfq14zgpz58f4s63",
+        "file": "Fennik.png:11720"
+      },
+      "pickStorage": {
+        "id": "kg2470xv216te807ztjsnjbnas8f4qyf",
+        "file": "Fennik.png:76864"
+      }
+    },
+    "florentino": {
+      "ban": "Florentino.png",
+      "pick": "Florentino.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg23833ryvn9fqae1r2cynyx4h8f4xcy",
+        "file": "Florentino.png:11969"
+      },
+      "pickStorage": {
+        "id": "kg20a9jae9sa6kd1vxc8vah2218f4v7a",
+        "file": "Florentino.png:78450"
+      }
+    },
+    "flowborn-carry": {
+      "ban": "FlowbornCarry.png",
+      "pick": "FlowbornCarry.png",
+      "checked": false,
+      "banStorage": {
+        "id": "kg254qns8vzt0thp610xkszf758f4aa1",
+        "file": "FlowbornCarry.png:10410"
+      },
+      "pickStorage": {
+        "id": "kg2bndsf5knw6c3px8tv6g29jx8f5x3y",
+        "file": "FlowbornCarry.png:73192"
+      }
+    },
+    "flowborn-mage": {
+      "ban": "FlowbornMage.png",
+      "pick": "FlowbornMage.png",
+      "checked": false,
+      "banStorage": {
+        "id": "kg22c3wfx9egwv4bw13et3sr8h8f5423",
+        "file": "FlowbornMage.png:10376"
+      },
+      "pickStorage": {
+        "id": "kg2dwnxfwjp7tv278ef8h0bsv18f5gcy",
+        "file": "FlowbornMage.png:73165"
+      }
+    },
+    "gildur": {
+      "ban": "Gildur.png",
+      "pick": "Gildur.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg29snrvzadw89vhk7wtej1rc98f4z3h",
+        "file": "Gildur.png:13081"
+      },
+      "pickStorage": {
+        "id": "kg2b0wtyw3kfrf509j270xpxwh8f4y5d",
+        "file": "Gildur.png:77860"
+      }
+    },
+    "goverra": {
+      "ban": "Goverra.png",
+      "pick": "Goverra.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg25j1s527rrkgqb61nrmq64a98f4dhb",
+        "file": "Goverra.png:11052"
+      },
+      "pickStorage": {
+        "id": "kg21thhnmjp1zkh0hjmex6ek0s8f4tva",
+        "file": "Goverra.png:77268"
+      }
+    },
+    "grakk": {
+      "ban": "Grakk.png",
+      "pick": "Grakk.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg241qrwe2vq8ver4597svb8wx8f4a55",
+        "file": "Grakk.png:11977"
+      },
+      "pickStorage": {
+        "id": "kg2bkqwmmthzxf6g1jnkv173h58f5hb1",
+        "file": "Grakk.png:77232"
+      }
+    },
+    "hayate": {
+      "ban": "Hayate.png",
+      "pick": "Hayate.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg204qwgtge4bsq2ebcfepmb7x8f4da5",
+        "file": "Hayate.png:12179"
+      },
+      "pickStorage": {
+        "id": "kg2767tkaz0edvx2384jsx6qr58f4c18",
+        "file": "Hayate.png:71266"
+      }
+    },
+    "heino": {
+      "ban": "Heino.png",
+      "pick": "Heino.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg21cbxmp4bkkeephcappg34v18f5wpg",
+        "file": "Heino.png:10990"
+      },
+      "pickStorage": {
+        "id": "kg2az3sphhffwyt2tyn63nzkgh8f4ayg",
+        "file": "Heino.png:81190"
+      }
+    },
+    "helen": {
+      "ban": "Helen.png",
+      "pick": "Helen.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2b679vrep0xpkcy7xf5gx61d8f40ay",
+        "file": "Helen.png:13735"
+      },
+      "pickStorage": {
+        "id": "kg234a2ry1bycsahvr8bqjwns58f4jbf",
+        "file": "Helen.png:81216"
+      }
+    },
+    "iggy": {
+      "ban": "Iggy.png",
+      "pick": "Iggy.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2esrwsa97kgwsj08hyxe8qwh8f53zx",
+        "file": "Iggy.png:12218"
+      },
+      "pickStorage": {
+        "id": "kg2f04t05km5994fphrb4m6enh8f4r1t",
+        "file": "Iggy.png:79120"
+      }
+    },
+    "ignis": {
+      "ban": "Ignis.png",
+      "pick": "Ignis.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2akpvv31qzh8qpxjqk4qtesx8f4geg",
+        "file": "Ignis.png:12675"
+      },
+      "pickStorage": {
+        "id": "kg23r63zc9efmermb0xbd6z6zx8f5118",
+        "file": "Ignis.png:85951"
+      }
+    },
+    "ilumia": {
+      "ban": "Illumia.png",
+      "pick": "Illumia.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2ee7wp8fv8y4mwhpqeapsdg58f478d",
+        "file": "Illumia.png:13269"
+      },
+      "pickStorage": {
+        "id": "kg2e74pgf92qkd7cnmt0f74ad18f4xab",
+        "file": "Illumia.png:83867"
+      }
+    },
+    "ishar": {
+      "ban": "Ishar.png",
+      "pick": "Ishar.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2crfydbsa25cr9qa8k154jzs8f5tfx",
+        "file": "Ishar.png:13664"
+      },
+      "pickStorage": {
+        "id": "kg202ke931m95ms0wg09850bwx8f4z7r",
+        "file": "Ishar.png:80266"
+      }
+    },
+    "jinnar": {
+      "ban": "Jinna.png",
+      "pick": "Jinna.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2dkc8wpxx3t3qcq16vdfak818f5ywv",
+        "file": "Jinna.png:13656"
+      },
+      "pickStorage": {
+        "id": "kg26w7jefyrzxn4anbzc22j8qs8f5gek",
+        "file": "Jinna.png:86544"
+      }
+    },
+    "kahlii": {
+      "ban": "Kahlii.png",
+      "pick": "Kahlii.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2f0t36ws77fpb8g6vfmrpqtx8f5kdr",
+        "file": "Kahlii.png:13438"
+      },
+      "pickStorage": {
+        "id": "kg293c5vs5s5nbjnqqjrvmjyn18f4zcz",
+        "file": "Kahlii.png:82234"
+      }
+    },
+    "kaine": {
+      "ban": "Kaine.png",
+      "pick": "Kaine.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg220atfw0srmgjhxnarqs8tmh8f474e",
+        "file": "Kaine.png:13003"
+      },
+      "pickStorage": {
+        "id": "kg21cstb4k5775hjrf8ba61krn8f4ay5",
+        "file": "Kaine.png:80407"
+      }
+    },
+    "keera": {
+      "ban": "Keera.png",
+      "pick": "Keera.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2cdmtxxhgn4w1862wj2jb1rn8f520c",
+        "file": "Keera.png:13064"
+      },
+      "pickStorage": {
+        "id": "kg21r9zq78szt546d5eacpb3398f4rak",
+        "file": "Keera.png:84150"
+      }
+    },
+    "kil-groth": {
+      "ban": "KilGroth.png",
+      "pick": "KilGroth.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg24sfxm586de1njq8hx7ns1zs8f433c",
+        "file": "KilGroth.png:12294"
+      },
+      "pickStorage": {
+        "id": "kg2d3ty5cxpeq4qf8fe8x91rs98f5xea",
+        "file": "KilGroth.png:77026"
+      }
+    },
+    "kriknak": {
+      "ban": "Kriknak.png",
+      "pick": "Kriknak.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg29tqs29rnjpbq06d29jqdrnx8f51jj",
+        "file": "Kriknak.png:12044"
+      },
+      "pickStorage": {
+        "id": "kg23tsb54qdagxcqkpgk0sjqkd8f4rpv",
+        "file": "Kriknak.png:75017"
+      }
+    },
+    "krixi": {
+      "ban": "Krixi.png",
+      "pick": "Krixi.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2cmwd6hqf4nh1q083j6ap1bd8f5sbh",
+        "file": "Krixi.png:13175"
+      },
+      "pickStorage": {
+        "id": "kg2eeqvrnqxpaz3ym20k5t3s8x8f58kx",
+        "file": "Krixi.png:80587"
+      }
+    },
+    "krizzix": {
+      "ban": "Krizzix.png",
+      "pick": "Krizzix.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg21hmv3fxk5af2v3fgde2edvd8f513p",
+        "file": "Krizzix.png:12781"
+      },
+      "pickStorage": {
+        "id": "kg229atf65pnbame4e1c3mc92x8f40qh",
+        "file": "Krizzix.png:83271"
+      }
+    },
+    "lauriel": {
+      "ban": "Lauriel.png",
+      "pick": "Lauriel.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2ftynfpz6kjhb6x3n41f41nh8f4tyj",
+        "file": "Lauriel.png:12992"
+      },
+      "pickStorage": {
+        "id": "kg2fngt36ncphd5bh3w2ppbf698f5q7y",
+        "file": "Lauriel.png:81969"
+      }
+    },
+    "laville": {
+      "ban": "Laville.png",
+      "pick": "Laville.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg24xsferfasvw4hvat6aepf618f5sa0",
+        "file": "Laville.png:13668"
+      },
+      "pickStorage": {
+        "id": "kg281vsytv33sseegc6y5n6v758f4x0q",
+        "file": "Laville.png:84435"
+      }
+    },
+    "liliana": {
+      "ban": "Liliana.png",
+      "pick": "Liliana.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg24bdke1jppysnb2wyfmz73z58f4ab3",
+        "file": "Liliana.png:12903"
+      },
+      "pickStorage": {
+        "id": "kg29x9p2kn54dy4wzffvcbadjn8f4j5c",
+        "file": "Liliana.png:87237"
+      }
+    },
+    "lindis": {
+      "ban": "Lindis.png",
+      "pick": "Lindis.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2bvv5bbntd8hjbey880cbyc58f40s8",
+        "file": "Lindis.png:12184"
+      },
+      "pickStorage": {
+        "id": "kg25j8n3081700bb7fdd6fcsvs8f4z04",
+        "file": "Lindis.png:84598"
+      }
+    },
+    "lorion": {
+      "ban": "Lorion.png",
+      "pick": "Lorion.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2d88qnmhpzhrgwkpj07afx4n8f5rw0",
+        "file": "Lorion.png:12444"
+      },
+      "pickStorage": {
+        "id": "kg2djgzqzttk3aszk2k7xscnb98f4mt8",
+        "file": "Lorion.png:80000"
+      }
+    },
+    "lu-bu": {
+      "ban": "LuBu.png",
+      "pick": "LuBu.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg20t1nrp2vsj07b0rerewc2qd8f5w7n",
+        "file": "LuBu.png:12695"
+      },
+      "pickStorage": {
+        "id": "kg2fhe1ktx6g6stgyh3ej5zsch8f4eq1",
+        "file": "LuBu.png:78582"
+      }
+    },
+    "lumburr": {
+      "ban": "Lumburr.png",
+      "pick": "Lumburr.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg276bec5rwq50xkcvsdp0y21h8f4ra5",
+        "file": "Lumburr.png:12814"
+      },
+      "pickStorage": {
+        "id": "kg23embcgee6z7bpdbd550db7h8f4x80",
+        "file": "Lumburr.png:75747"
+      }
+    },
+    "maloch": {
+      "ban": "Maloch.png",
+      "pick": "Maloch.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2eyt8ewpq77f44b2rdh7z0j18f4zaa",
+        "file": "Maloch.png:12164"
+      },
+      "pickStorage": {
+        "id": "kg2ce17n7897bm04vd1ekb3gnh8f419h",
+        "file": "Maloch.png:76882"
+      }
+    },
+    "marja": {
+      "ban": "Marja.png",
+      "pick": "Marja.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2dgm5j94s0trffy2gr1bzg8d8f51v2",
+        "file": "Marja.png:12619"
+      },
+      "pickStorage": {
+        "id": "kg2f46aebaf0jyfgme6sx3tg4s8f4y2m",
+        "file": "Marja.png:81993"
+      }
+    },
+    "max": {
+      "ban": "Max.png",
+      "pick": "Max.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg268w8mbdfv24eb7qm57nq2v18f46ng",
+        "file": "Max.png:8306"
+      },
+      "pickStorage": {
+        "id": "kg20m2ya2gdpak4znrxmxgpn498f4c5j",
+        "file": "Max.png:74177"
+      }
+    },
+    "mganga": {
+      "ban": "Mganga.png",
+      "pick": "Mganga.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg20j7aktsatbyqxrztjmjx29x8f4h08",
+        "file": "Mganga.png:9144"
+      },
+      "pickStorage": {
+        "id": "kg2e7qqq3jv0qt1afc8jj5fyps8f41t1",
+        "file": "Mganga.png:86621"
+      }
+    },
+    "mina": {
+      "ban": "Mina.png",
+      "pick": "Mina.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg218deg3jdmxn1qhtb5vw3fts8f5gbg",
+        "file": "Mina.png:8513"
+      },
+      "pickStorage": {
+        "id": "kg2c91nz5v5p2yb1hxpdf34ng98f554e",
+        "file": "Mina.png:84986"
+      }
+    },
+    "ming": {
+      "ban": "Ming.png",
+      "pick": "Ming.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg22eagk3efab66pdc1cz0b64n8f4ppy",
+        "file": "Ming.png:8742"
+      },
+      "pickStorage": {
+        "id": "kg26pj6efzf8bgh1xj0h0a07fn8f4mfb",
+        "file": "Ming.png:86277"
+      }
+    },
+    "moren": {
+      "ban": "Moren.png",
+      "pick": "Moren.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg250nfzj4smycryk7xfg4d7w98f43zj",
+        "file": "Moren.png:9280"
+      },
+      "pickStorage": {
+        "id": "kg21x9e6597ey533gjskxcnwen8f58e1",
+        "file": "Moren.png:86555"
+      }
+    },
+    "mortos": {
+      "ban": "Mortos.png",
+      "pick": "Mortos.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2frpmqh5mhjjvz1pr1rx3a8x8f58gg",
+        "file": "Mortos.png:8277"
+      },
+      "pickStorage": {
+        "id": "kg24n7fe3mn8m98j5zjsn4qexn8f5pp8",
+        "file": "Mortos.png:92929"
+      }
+    },
+    "murad": {
+      "ban": "Murad.png",
+      "pick": "Murad.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2de8eyx23hy14nbj33fzeszh8f5jj4",
+        "file": "Murad.png:7727"
+      },
+      "pickStorage": {
+        "id": "kg221gk2p0cdq5j96qy0za10158f5e9q",
+        "file": "Murad.png:76905"
+      }
+    },
+    "nakroth": {
+      "ban": "Nakroth.png",
+      "pick": "Nakroth.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg257vgeh2gk7q02yqsegsxy318f4xzw",
+        "file": "Nakroth.png:8759"
+      },
+      "pickStorage": {
+        "id": "kg2e8rk9mbyqtz4z0j5cwh8grn8f4fgg",
+        "file": "Nakroth.png:82403"
+      }
+    },
+    "natalya": {
+      "ban": "Natalya.png",
+      "pick": "Natalya.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2fqnxkj5w7nphtq0y07r3jq98f40bp",
+        "file": "Natalya.png:8694"
+      },
+      "pickStorage": {
+        "id": "kg253ek84s0b2jk9g7zr73n1js8f5sxh",
+        "file": "Natalya.png:76550"
+      }
+    },
+    "omega": {
+      "ban": "Omega.png",
+      "pick": "Omega.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2cfch8f2reb6311f16gy06wx8f48wz",
+        "file": "Omega.png:7549"
+      },
+      "pickStorage": {
+        "id": "kg253ccvdxwsdp1ykrpd39ycp58f5mn6",
+        "file": "Omega.png:71387"
+      }
+    },
+    "omen": {
+      "ban": "Omen.png",
+      "pick": "Omen.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg25py1kte16m1j13rxrykhrj58f5v9j",
+        "file": "Omen.png:8970"
+      },
+      "pickStorage": {
+        "id": "kg2d35v0d6jdzfh56qfeqaed1d8f5y18",
+        "file": "Omen.png:82111"
+      }
+    },
+    "ormarr": {
+      "ban": "Ormarr.png",
+      "pick": "Ormarr.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg263dasx68c12q3cb14j49w6n8f5sm3",
+        "file": "Ormarr.png:8684"
+      },
+      "pickStorage": {
+        "id": "kg2egvdakw3mg37eqx2z1sby5n8f4ke5",
+        "file": "Ormarr.png:80976"
+      }
+    },
+    "paine": {
+      "ban": "Paine.png",
+      "pick": "Paine.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2cw1a8bktpj24vpca1mbg8x58f4ppr",
+        "file": "Paine.png:8497"
+      },
+      "pickStorage": {
+        "id": "kg2ej8bt2kqk28w9wm012k2hps8f53zb",
+        "file": "Paine.png:72989"
+      }
+    },
+    "peura": {
+      "ban": null,
+      "pick": null,
+      "checked": false
+    },
+    "preyta": {
+      "ban": "Preyta.png",
+      "pick": "Preyta.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg239dpj0s1q43kqrejntjhttd8f5yq3",
+        "file": "Preyta.png:8544"
+      },
+      "pickStorage": {
+        "id": "kg20yn8g9za09tgdsrzmt7yzr98f53n5",
+        "file": "Preyta.png:80998"
+      }
+    },
+    "qi": {
+      "ban": "Qi.png",
+      "pick": "Qi.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2f1yvtenq8ge41zamnrm4s398f4vdj",
+        "file": "Qi.png:8488"
+      },
+      "pickStorage": {
+        "id": "kg28bk3w5k6af0asny1pczzrt18f41st",
+        "file": "Qi.png:71573"
+      }
+    },
+    "quillen": {
+      "ban": "Quillen.png",
+      "pick": "Quillen.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg24k7n284sxpytq6394awdn0x8f403d",
+        "file": "Quillen.png:7541"
+      },
+      "pickStorage": {
+        "id": "kg22sp81j4g622eje4yfqp0j6s8f57a7",
+        "file": "Quillen.png:74312"
+      }
+    },
+    "raz": {
+      "ban": "Raz.png",
+      "pick": "Raz.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg27vs61w87tq2evw7n4z2a16d8f46xe",
+        "file": "Raz.png:8492"
+      },
+      "pickStorage": {
+        "id": "kg2a8hvv148bc6rn21eygh7sxx8f5j23",
+        "file": "Raz.png:79116"
+      }
+    },
+    "riktor": {
+      "ban": "Riktor.png",
+      "pick": "Riktor.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg25d1x7wa1vf6pg6jj0s1srp58f4g02",
+        "file": "Riktor.png:7595"
+      },
+      "pickStorage": {
+        "id": "kg20eywjyyytvene62gybc3h5d8f5gd1",
+        "file": "Riktor.png:78147"
+      }
+    },
+    "rouie": {
+      "ban": "Rouie.png",
+      "pick": "Rouie.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2e39w7e0bf7d2myahv69z6rn8f530f",
+        "file": "Rouie.png:8363"
+      },
+      "pickStorage": {
+        "id": "kg262e52b8hpa95r17g5szaytx8f4mqd",
+        "file": "Rouie.png:79700"
+      }
+    },
+    "rourke": {
+      "ban": "Rourke.png",
+      "pick": "Rourke.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2535vhs1d1670843jgv8kjkx8f4pep",
+        "file": "Rourke.png:7983"
+      },
+      "pickStorage": {
+        "id": "kg29c04a3ejp89z6dmynfp02bd8f4t9b",
+        "file": "Rourke.png:77997"
+      }
+    },
+    "roxie": {
+      "ban": "Roxie.png",
+      "pick": "Roxie.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2bs8hzd32h7tn77z19aje7rx8f5fbr",
+        "file": "Roxie.png:8203"
+      },
+      "pickStorage": {
+        "id": "kg209712s7p1gcxn3whch88b658f4fsg",
+        "file": "Roxie.png:77244"
+      }
+    },
+    "ryoma": {
+      "ban": "Ryoma.png",
+      "pick": "Ryoma.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2d46arzfcy7t6vxtmzrwmaen8f58tw",
+        "file": "Ryoma.png:8195"
+      },
+      "pickStorage": {
+        "id": "kg20mh52e324d1sngq7kwfw4p18f43fb",
+        "file": "Ryoma.png:81767"
+      }
+    },
+    "sephera": {
+      "ban": "Sephera.png",
+      "pick": "Sephera.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg24c74g9y9x3tg2mb1apmmhjd8f5y61",
+        "file": "Sephera.png:8221"
+      },
+      "pickStorage": {
+        "id": "kg27yv71reebt7d595sakpqv4x8f5v54",
+        "file": "Sephera.png:78479"
+      }
+    },
+    "sinestrea": {
+      "ban": "Sinestrea.png",
+      "pick": "Sinestrea.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg25an6v6eczq6aj7epddz70798f5trp",
+        "file": "Sinestrea.png:8024"
+      },
+      "pickStorage": {
+        "id": "kg24r1t2pfnk09rp42hdamszsd8f4xkj",
+        "file": "Sinestrea.png:68326"
+      }
+    },
+    "skud": {
+      "ban": "Skud.png",
+      "pick": "Skud.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2fhf45p43y77ws519hqgphzs8f45bg",
+        "file": "Skud.png:8395"
+      },
+      "pickStorage": {
+        "id": "kg20js63he4m4zgav17w11brmd8f4xt6",
+        "file": "Skud.png:80487"
+      }
+    },
+    "slimz": {
+      "ban": "Slimz.png",
+      "pick": "Slimz.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2ev38bd3ddz1r1aj55vrf6jd8f5999",
+        "file": "Slimz.png:8331"
+      },
+      "pickStorage": {
+        "id": "kg24c2rnphqwt8nazj3hyxdgm58f4v55",
+        "file": "Slimz.png:76554"
+      }
+    },
+    "stuart": {
+      "ban": "Stuart.png",
+      "pick": "Stuart.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg291xehr5zwphhs17b2fh5dgx8f5g7q",
+        "file": "Stuart.png:8562"
+      },
+      "pickStorage": {
+        "id": "kg2bqa0epmv7mnjqn7pffjpheh8f404m",
+        "file": "Stuart.png:78857"
+      }
+    },
+    "superman": {
+      "ban": "Superman.png",
+      "pick": "Superman.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg24gjqwxcryrx4g9kcpn3qx1x8f598n",
+        "file": "Superman.png:8282"
+      },
+      "pickStorage": {
+        "id": "kg23ccgpfhzbmencsnep0a57c58f5d4c",
+        "file": "Superman.png:78703"
+      }
+    },
+    "taara": {
+      "ban": "Taara.png",
+      "pick": "Taara.png",
+      "checked": false,
+      "banStorage": {
+        "id": "kg29tyzrf46k7mf5wbczkchnps8f5cph",
+        "file": "Taara.png:8526"
+      },
+      "pickStorage": {
+        "id": "kg28sd17ckh2170v4nfm3k472s8f557m",
+        "file": "Taara.png:79946"
+      }
+    },
+    "tachi": {
+      "ban": "Tachi.png",
+      "pick": "Tachi.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg29ryfz0tbznpgmdzg48vtc798f40s8",
+        "file": "Tachi.png:8461"
+      },
+      "pickStorage": {
+        "id": "kg2br5ksf14j582pt0p3sgvwgx8f4116",
+        "file": "Tachi.png:77243"
+      }
+    },
+    "teemee": {
+      "ban": "TeeMee.png",
+      "pick": "TeeMee.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2ddecmrxwc30ny2t2zdz1csn8f5jzz",
+        "file": "TeeMee.png:8833"
+      },
+      "pickStorage": {
+        "id": "kg2eftnhms48njwhws0gn2wnps8f4fy5",
+        "file": "TeeMee.png:82126"
+      }
+    },
+    "teeri": {
+      "ban": "Teeri.png",
+      "pick": "Teeri.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg25es616j7gwa1h2cbqe128398f53v8",
+        "file": "Teeri.png:8447"
+      },
+      "pickStorage": {
+        "id": "kg2e9zhj3kx8ymej5ch9ke2a5s8f5n57",
+        "file": "Teeri.png:80644"
+      }
+    },
+    "tel-annas": {
+      "ban": "TelAnnas.png",
+      "pick": "TelAnnas.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg20dzsafckvjg8w4kg89703dn8f4qde",
+        "file": "TelAnnas.png:8304"
+      },
+      "pickStorage": {
+        "id": "kg2bnkcq4w53a0vh157a6m1ye98f5n4y",
+        "file": "TelAnnas.png:79581"
+      }
+    },
+    "thane": {
+      "ban": "Thane.png",
+      "pick": "Thane.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg20p8sc448prcryj2rd36248h8f4q16",
+        "file": "Thane.png:8957"
+      },
+      "pickStorage": {
+        "id": "kg2a1rrtw5bxb702xv7tkynbmh8f5pf2",
+        "file": "Thane.png:87771"
+      }
+    },
+    "the-flash": {
+      "ban": "TheFlash.png",
+      "pick": "TheFlash.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2c46ef53zdr2p4a7y32axjvd8f54h5",
+        "file": "TheFlash.png:8658"
+      },
+      "pickStorage": {
+        "id": "kg2d6g8p0tsvk19xt779dqrnzn8f4sjh",
+        "file": "TheFlash.png:83378"
+      }
+    },
+    "thorne": {
+      "ban": "Thorne.png",
+      "pick": "Thorne.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg26a7xzrmkhrtf3gv380tws758f50hz",
+        "file": "Thorne.png:7994"
+      },
+      "pickStorage": {
+        "id": "kg21sv9wack6k98cc7g249zz818f50wc",
+        "file": "Thorne.png:71653"
+      }
+    },
+    "toro": {
+      "ban": "Toro.png",
+      "pick": "Toro.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2f62r9hyjfhtfhgqnmmjvfp58f44z6",
+        "file": "Toro.png:8727"
+      },
+      "pickStorage": {
+        "id": "kg2a5bj7rw0ftan5dzd5db9r1d8f56t1",
+        "file": "Toro.png:87358"
+      }
+    },
+    "tulen": {
+      "ban": "Tulen.png",
+      "pick": "Tulen.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2ap92sajthsz37dq681aktr18f4bts",
+        "file": "Tulen.png:8123"
+      },
+      "pickStorage": {
+        "id": "kg20sabmfkjry40ebq15reb0xd8f466m",
+        "file": "Tulen.png:79471"
+      }
+    },
+    "valhein": {
+      "ban": "Valhein.png",
+      "pick": "Valhein.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2113bxtfdmc879js6bmp4xn98f4d4z",
+        "file": "Valhein.png:8775"
+      },
+      "pickStorage": {
+        "id": "kg24ynn9zfxqnnw3hetjz8q28d8f4c58",
+        "file": "Valhein.png:80283"
+      }
+    },
+    "veera": {
+      "ban": "Veera.png",
+      "pick": "Veera.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg262964qhpd6b1p0s5008z6rd8f5963",
+        "file": "Veera.png:8909"
+      },
+      "pickStorage": {
+        "id": "kg23x123vj7gy57hn5t6y8en4d8f42ta",
+        "file": "Veera.png:87326"
+      }
+    },
+    "veres": {
+      "ban": "Veres.png",
+      "pick": "Veres.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2fy1qvkvq0jf1hz9jdzc5jbn8f5r49",
+        "file": "Veres.png:8072"
+      },
+      "pickStorage": {
+        "id": "kg2aw67ngz32nw2b4xztq077gh8f52yb",
+        "file": "Veres.png:72539"
+      }
+    },
+    "violet": {
+      "ban": "Violet.png",
+      "pick": "Violet.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg22307hh00d3t77qr24d6ttzn8f55nm",
+        "file": "Violet.png:8424"
+      },
+      "pickStorage": {
+        "id": "kg2bq9fdhcxmf5s2h6j29k56sh8f515b",
+        "file": "Violet.png:77179"
+      }
+    },
+    "volkath": {
+      "ban": "Volkath.png",
+      "pick": "Volkath.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2edbkevwg88szh99haktvd5x8f56se",
+        "file": "Volkath.png:7961"
+      },
+      "pickStorage": {
+        "id": "kg264smq13cjt06td2wpxkmddx8f50p1",
+        "file": "Volkath.png:63348"
+      }
+    },
+    "wiro": {
+      "ban": "Wiro.png",
+      "pick": "Wiro.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg27cf8rqafv887ck4tsmtggsn8f4xef",
+        "file": "Wiro.png:7997"
+      },
+      "pickStorage": {
+        "id": "kg2ewd8mj9jbsrmm0yzpcdx8jh8f5r2v",
+        "file": "Wiro.png:72013"
+      }
+    },
+    "wisp": {
+      "ban": "Wisp.png",
+      "pick": "Wisp.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg22y8p84g1kwapet4b92d60zh8f5g5g",
+        "file": "Wisp.png:8370"
+      },
+      "pickStorage": {
+        "id": "kg239k4mxep16wv47ah0efr4m18f5fbz",
+        "file": "Wisp.png:81930"
+      }
+    },
+    "wonder-woman": {
+      "ban": "WonderWoman.png",
+      "pick": "WonderWoman.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2a61rmk9my6haz4dgf5anwd98f4vzb",
+        "file": "WonderWoman.png:8289"
+      },
+      "pickStorage": {
+        "id": "kg25x6tkhqybn7sye3qb5h56v58f58ed",
+        "file": "WonderWoman.png:76689"
+      }
+    },
+    "wukong": {
+      "ban": "WuKong.png",
+      "pick": "WuKong.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2fgswd019mtrtnrswyd8peb98f45be",
+        "file": "WuKong.png:8912"
+      },
+      "pickStorage": {
+        "id": "kg24405dr1zgp8j80bvrkh7wjn8f4q7q",
+        "file": "WuKong.png:87338"
+      }
+    },
+    "xeniel": {
+      "ban": "Xeniel.png",
+      "pick": "Xeniel.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2ekwpg8pkzcft58es9n7rksn8f408p",
+        "file": "Xeniel.png:11217"
+      },
+      "pickStorage": {
+        "id": "kg250zwckx9wxvf29dpc79b8v58f4b1e",
+        "file": "Xeniel.png:88342"
+      }
+    },
+    "y-bneth": {
+      "ban": "Ybneth.png",
+      "pick": "Ybneth.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg20r2aafadhrw297cnfat5f7s8f5pqp",
+        "file": "Ybneth.png:8944"
+      },
+      "pickStorage": {
+        "id": "kg28pay87vxtgr9zmypmpb4axd8f48cg",
+        "file": "Ybneth.png:86256"
+      }
+    },
+    "yan": {
+      "ban": "Yan.png",
+      "pick": "Yan.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg28rzs157exnasfbjtw2xyh5x8f44be",
+        "file": "Yan.png:8666"
+      },
+      "pickStorage": {
+        "id": "kg2895c1kecnvg1twhd79atw3d8f5pyh",
+        "file": "Yan.png:79081"
+      }
+    },
+    "yena": {
+      "ban": "Yena.png",
+      "pick": "Yena.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg212xgtt3dxj6qsfvhbdqgvdn8f55mb",
+        "file": "Yena.png:8589"
+      },
+      "pickStorage": {
+        "id": "kg2a0v4zye6k28nc0m6k6sqzdn8f48sr",
+        "file": "Yena.png:74076"
+      }
+    },
+    "yorn": {
+      "ban": "Yorn.png",
+      "pick": "Yorn.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg25hqn34mnwb6esqtnydj39sh8f53h2",
+        "file": "Yorn.png:8096"
+      },
+      "pickStorage": {
+        "id": "kg25fr9df2bxfmekp1qdhjvwp98f5g3g",
+        "file": "Yorn.png:77636"
+      }
+    },
+    "yue": {
+      "ban": "Yue.png",
+      "pick": "Yue.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2c2g89btmm6908dk5f4861zn8f4tcv",
+        "file": "Yue.png:8530"
+      },
+      "pickStorage": {
+        "id": "kg21cfmpzwgbwp7pd7wqq3yjgx8f5f2r",
+        "file": "Yue.png:77114"
+      }
+    },
+    "zanis": {
+      "ban": "Zanis.png",
+      "pick": "Zanis.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg26yvvzgpes6xaky67tdan11n8f4eke",
+        "file": "Zanis.png:8688"
+      },
+      "pickStorage": {
+        "id": "kg2fzvw46m4je1p0669ab5st1d8f5grx",
+        "file": "Zanis.png:78059"
+      }
+    },
+    "zata": {
+      "ban": "Zata.png",
+      "pick": "Zata.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg24hj3d2647pcb6c8zaxk2ead8f5h85",
+        "file": "Zata.png:8358"
+      },
+      "pickStorage": {
+        "id": "kg24q7v5q21nrr88zwwxq9v9ws8f4egs",
+        "file": "Zata.png:75117"
+      }
+    },
+    "zephys": {
+      "ban": "Zephys.png",
+      "pick": "Zephys.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2262877bn94vyejrq8zj3g418f5czz",
+        "file": "Zephys.png:7447"
+      },
+      "pickStorage": {
+        "id": "kg27sj7y0806amfezqhhq9s38n8f5n40",
+        "file": "Zephys.png:69828"
+      }
+    },
+    "zill": {
+      "ban": "Zill.png",
+      "pick": "Zill.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2f772ajbpczjek7z9pzfnzsn8f4vt2",
+        "file": "Zill.png:8107"
+      },
+      "pickStorage": {
+        "id": "kg2fgwamb32seg1gr66fehxxxd8f5xn4",
+        "file": "Zill.png:75870"
+      }
+    },
+    "zip": {
+      "ban": "Zip.png",
+      "pick": "Zip.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2bebs5srgxfpypgxn8ehz70s8f445h",
+        "file": "Zip.png:8321"
+      },
+      "pickStorage": {
+        "id": "kg220m0bpjn3jgf3xhnmepdxsn8f569v",
+        "file": "Zip.png:75823"
+      }
+    },
+    "zuka": {
+      "ban": "Zuka.png",
+      "pick": "Zuka.png",
+      "checked": true,
+      "banStorage": {
+        "id": "kg2ewv0vrqn5afsvtqe9jmvf498f40x8",
+        "file": "Zuka.png:8734"
+      },
+      "pickStorage": {
+        "id": "kg268164kyddh6z0524tfzsnk18f5fg3",
+        "file": "Zuka.png:80811"
+      }
+    },
+    "tamyn": {
+      "ban": null,
+      "pick": null,
+      "checked": false
+    },
+    "unnamed-blue-armour": {
+      "ban": null,
+      "pick": null,
+      "checked": false
+    }
+  }
+}

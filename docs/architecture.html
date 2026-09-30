@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How the RoV Analytics System Works</title>
+<style>
+  :root {
+    --bg: #000000; --surface: #111111; --surface-2: #1A1A1A; --border: #2E2E2E;
+    --text: #C9C9C9; --text-muted: #8A8A8A; --text-strong: #FFFFFF; --critical: #FF453A;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 16px/1.55 "Inter", "Segoe UI", system-ui, sans-serif; padding: 20px 16px 80px; max-width: 860px; margin: 0 auto; }
+  h1, h2, h3 { color: var(--text-strong); margin: 0; letter-spacing: -0.01em; }
+  h1 { font-size: 28px; line-height: 1.2; }
+  h2 { font-size: 20px; margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--border); }
+  h3 { font-size: 15px; margin-top: 18px; }
+  p { margin: 12px 0; }
+  b, strong { color: var(--text-strong); font-weight: 700; }
+  a { color: var(--text-strong); }
+  code { font: 13.5px/1.4 ui-monospace, Consolas, monospace; background: var(--surface); padding: 2px 6px; border-radius: 4px; color: var(--text-strong); }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font: 13px/1.5 ui-monospace, Consolas, monospace; color: var(--text); }
+  .lede { color: var(--text-muted); font-size: 17px; margin-top: 10px; }
+  .muted { color: var(--text-muted); }
+  .small { font-size: 13px; }
+  ul, ol { padding-left: 22px; } li { margin: 6px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14.5px; }
+  th { text-align: left; color: var(--text-muted); font-weight: 500; padding: 8px 10px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .wrap { overflow-x: auto; }
+  .num { font-variant-numeric: tabular-nums; }
+  .crit { color: var(--critical); font-weight: 700; }
+  .note { border-left: 3px solid var(--critical); padding: 8px 14px; background: var(--surface); margin: 16px 0; }
+
+  /* ---------- diagram 1: three programs, packets moving between them */
+  .sys { display: grid; grid-template-columns: 1fr 64px 1fr; gap: 10px; margin: 20px 0 6px; align-items: stretch; }
+  .box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .box h3 { margin: 0; font-size: 14px; }
+  .box .tag { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .inner { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13.5px; }
+  .inner b { display: block; }
+  .inner span { color: var(--text-muted); font-size: 12.5px; }
+  .stack { display: flex; flex-direction: column; gap: 6px; }
+  .vlink { position: relative; height: 26px; margin: 0 auto; width: 2px; background: var(--border); }
+  .vlink::after { content: ""; position: absolute; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--text-strong); animation: down 1.6s linear infinite; }
+  @keyframes down { from { top: -4px; opacity: 0 } 15% { opacity: 1 } 85% { opacity: 1 } to { top: 22px; opacity: 0 } }
+  .link { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; position: relative; }
+  .wire { position: relative; width: 100%; height: 2px; background: var(--border); }
+  .wire::after { content: ""; position: absolute; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--text-strong); animation: go 2.2s linear infinite; }
+  .wire.back::after { animation-name: back; animation-delay: 1.1s; }
+  @keyframes go { from { left: -4px; opacity: 0 } 12% { opacity: 1 } 88% { opacity: 1 } to { left: calc(100% - 4px); opacity: 0 } }
+  @keyframes back { from { left: calc(100% - 4px); opacity: 0 } 12% { opacity: 1 } 88% { opacity: 1 } to { left: -4px; opacity: 0 } }
+  .link small { font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.2; }
+  .caption { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+  .later { border-style: dashed; opacity: 0.85; }
+
+  /* ---------- diagram 2: pipeline with a moving highlight */
+  .pipe { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; counter-reset: step; margin: 18px 0 6px; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 10px 10px 12px; position: relative; font-size: 13.5px; min-height: 92px; animation: pulse 9.6s infinite; }
+  .step::before { counter-increment: step; content: counter(step); display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+  .step b { display: block; font-size: 14px; }
+  .step .who { display: block; font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
+  .step:nth-child(1) { animation-delay: 0s } .step:nth-child(2) { animation-delay: 1.2s } .step:nth-child(3) { animation-delay: 2.4s } .step:nth-child(4) { animation-delay: 3.6s }
+  .step:nth-child(5) { animation-delay: 4.8s } .step:nth-child(6) { animation-delay: 6s } .step:nth-child(7) { animation-delay: 7.2s } .step:nth-child(8) { animation-delay: 8.4s }
+  @keyframes pulse { 0%, 12.5% { border-color: var(--text-strong); background: var(--surface-2); } 13%, 100% { border-color: var(--border); background: var(--surface); } }
+
+  /* ---------- diagram 3: sequence of a mutation call */
+  .seq { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; margin: 18px 0 6px; position: relative; }
+  .actor { text-align: center; font-size: 13px; color: var(--text-strong); padding: 8px 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+  .actor span { display: block; color: var(--text-muted); font-size: 11.5px; }
+  .lane { position: relative; height: 230px; }
+  .lane::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px dashed var(--border); }
+  .msg { position: absolute; left: 50%; height: 2px; background: var(--border); }
+  .msg::after { content: ""; position: absolute; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--text-strong); animation: go 6s linear infinite; }
+  .msg.rtl::after { animation-name: back; }
+  .msg i { position: absolute; top: -20px; left: 0; right: 0; text-align: center; font-style: normal; font-size: 11.5px; color: var(--text); white-space: nowrap; }
+  .m1 { top: 30px; width: 100%; } .m1::after { animation-delay: 0s; }
+  .m2 { top: 80px; width: 100%; } .m2::after { animation-delay: 1.5s; }
+  .m3 { top: 130px; width: 100%; } .m3::after { animation-delay: 3s; }
+  .m4 { top: 180px; width: 100%; } .m4::after { animation-delay: 4.5s; }
+  .work { position: absolute; left: calc(50% - 5px); width: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 3px; }
+
+  /* ---------- diagram 4: upload three steps */
+  .up { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 18px 0 6px; }
+  .up .step { min-height: 0; animation: pulse 4.5s infinite; }
+  .up .step:nth-child(1) { animation-delay: 0s } .up .step:nth-child(2) { animation-delay: 1.5s } .up .step:nth-child(3) { animation-delay: 3s }
+
+  details { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
+  summary { cursor: pointer; color: var(--text-strong); font-weight: 700; }
+  summary:focus-visible, a:focus-visible { outline: 2px solid var(--text-strong); outline-offset: 2px; }
+  .legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--text-muted); flex-wrap: wrap; margin-top: 8px; }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--text-strong); margin-right: 5px; }
+
+  @media (max-width: 640px) {
+    body { font-size: 15px; padding: 16px 12px 60px; }
+    h1 { font-size: 24px; }
+    .sys { grid-template-columns: 1fr; }
+    .link { flex-direction: row; height: 44px; }
+    .wire { width: 2px; height: 100%; }
+    .wire::after { left: -3px; top: auto; animation-name: down2; }
+    .wire.back::after { animation-name: up2; }
+    @keyframes down2 { from { top: -4px; opacity: 0 } 12% { opacity: 1 } 88% { opacity: 1 } to { top: calc(100% - 4px); opacity: 0 } }
+    @keyframes up2 { from { top: calc(100% - 4px); opacity: 0 } 12% { opacity: 1 } 88% { opacity: 1 } to { top: -4px; opacity: 0 } }
+    .link small { display: none; }
+    .pipe { grid-template-columns: 1fr 1fr; }
+    .seq { grid-template-columns: 1fr 1fr 1fr; }
+    .lane { height: 250px; }
+    .msg i { font-size: 10.5px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wire::after, .vlink::after, .msg::after { animation: none; left: 45%; opacity: 1; }
+    .step { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<h1>How the RoV Analytics System Works</h1>
+<p class="lede">Three programs in two languages, joined by one contract. Python runs where the screenshots are. TypeScript runs where the data lives. They never import each other.</p>
+
+<h2>1. The three programs</h2>
+<p>Your PC runs the <b>extractor</b>. Your NAS runs <b>Convex</b>. A <b>dashboard</b> will come later and read Convex directly. The moving dots show which way requests travel.</p>
+
+<div class="sys">
+  <div class="box">
+    <span class="tag">Your PC · Python</span>
+    <h3>Extractor</h3>
+    <div class="stack">
+      <div class="inner"><b>Browser page</b><span>HTML, CSS, plain JavaScript in <code>static/</code>. Calls <code>/api/…</code> with fetch.</span></div>
+      <div class="vlink"></div>
+      <div class="inner"><b>FastAPI server</b><span>Serves the page, validates drafts, writes JSON to <code>data/series/</code>.</span></div>
+      <div class="inner"><b>OpenCV + RapidOCR</b><span>Reads names, numbers and hero art from screenshots. CPU only, never leaves the PC.</span></div>
+    </div>
+  </div>
+  <div class="link">
+    <div class="wire"></div>
+    <small>mutation<br>query<br>upload</small>
+    <div class="wire back"></div>
+  </div>
+  <div class="box">
+    <span class="tag">Your NAS · TypeScript</span>
+    <h3>Convex</h3>
+    <div class="stack">
+      <div class="inner"><b>Functions</b><span><code>games:upsert</code>, <code>files:saveImage</code> and friends. Written in <code>convex/</code>, deployed with <code>bunx convex deploy</code>.</span></div>
+      <div class="inner"><b>Database</b><span>Tables: series, games, draftActions, images.</span></div>
+      <div class="inner"><b>File storage</b><span>The screenshots themselves.</span></div>
+    </div>
+  </div>
+</div>
+<div class="sys" style="margin-top:0">
+  <div></div>
+  <div class="link"><div class="vlink" style="height:26px"></div></div>
+  <div class="box later">
+    <span class="tag">Later · TypeScript</span>
+    <h3>Dashboard</h3>
+    <div class="inner"><b>TanStack Start + Convex React client</b><span>Reads the tables straight from the browser. Never talks to the Python side.</span></div>
+  </div>
+</div>
+<p class="caption">The two languages meet only at the arrows. Both sides agree on function names and JSON shapes, nothing else.</p>
+
+<h2>2. The life of one game</h2>
+<p>Follow the highlight. Each step names who does the work.</p>
+<div class="pipe">
+  <div class="step"><b>Screenshot</b>Draft bar and post-game screen from the broadcast.<span class="who">You</span></div>
+  <div class="step"><b>Attach</b>Copied into the series folder and uploaded to Convex storage at once.<span class="who">FastAPI → Convex</span></div>
+  <div class="step"><b>Recognise</b>OCR reads names and numbers; art matching guesses heroes and finds swaps.<span class="who">Python, on your PC</span></div>
+  <div class="step"><b>Check</b>Amber fields are guesses. You confirm or fix them. Enter walks the draft order.<span class="who">You, in the browser</span></div>
+  <div class="step"><b>Validate</b>Draft rules, Global Ban-Pick, lanes, post-swap heroes must match picks.<span class="who">FastAPI</span></div>
+  <div class="step"><b>Save</b>One <code>gN.json</code> per game. Slot crops are learned for next time.<span class="who">FastAPI → disk</span></div>
+  <div class="step"><b>Push</b><code>games:upsert</code> stores the game and 18 draft-action rows.<span class="who">Python client → Convex</span></div>
+  <div class="step"><b>Dashboard</b>First pick, bans, response picks are indexed queries.<span class="who">Convex → browser</span></div>
+</div>
+<p class="caption">Steps 1 to 6 need nothing but your PC. Steps 2, 7 and 8 need the NAS to be reachable.</p>
+
+<h2>3. How Python calls TypeScript</h2>
+<p>It never calls a TypeScript function in-process. The Convex Python client sends a <b>function name and JSON arguments</b> over the network. The Convex server on the NAS runs the TypeScript handler and returns JSON. Any language with a Convex client can call the same function, which is why the future dashboard needs no Python.</p>
+
+<div class="seq">
+  <div class="actor">push.py<span>Python client</span></div>
+  <div class="actor">Convex server<span>runs on the NAS</span></div>
+  <div class="actor">Database<span>tables + storage</span></div>
+  <div class="lane"><div class="msg m1"><i>mutation("games:upsert", {series, game})</i></div></div>
+  <div class="lane"><div class="work" style="top:30px;height:150px"></div><div class="msg m2"><i>upsert series, game</i></div><div class="msg m3 rtl"><i>delete old rows, insert 18 actions</i></div></div>
+  <div class="lane"><div class="msg m4 rtl" style="left:-100%;width:200%"><i>{ gameId, actions: 18 }</i></div></div>
+</div>
+<div class="legend"><span><i></i>request</span><span>Handler code lives in <code>convex/games.ts</code></span></div>
+
+<details>
+  <summary>The same call, as code on both sides</summary>
+  <p class="small muted">Python side, in <code>src/rov_extractor/push.py</code>:</p>
+<pre>client = ConvexClient("http://suwinas.local:3810")
+client.set_admin_auth(admin_key)
+client.mutation("games:upsert", {"series": series, "game": game})</pre>
+  <p class="small muted">TypeScript side, in <code>convex/games.ts</code>, deployed to the NAS:</p>
+<pre>export const upsert = mutation({
+  args: { series: v.any(), game: v.any() },
+  handler: async (ctx, { series, game }) => {
+    // upsert rows, replace draftActions for this gameId
+  },
+});</pre>
+</details>
+
+<h3>Uploading a screenshot is three calls</h3>
+<div class="up">
+  <div class="step"><b>Ask for a URL</b><code>files:generateUploadUrl</code> returns a one-time upload address.</div>
+  <div class="step"><b>POST the bytes</b>Plain HTTP upload to that address. Convex answers with a storage id.</div>
+  <div class="step"><b>Link it</b><code>files:saveImage</code> records series, game, kind and the storage id.</div>
+</div>
+<p class="caption">Reading goes the other way: <code>files:imageUrl</code> returns a signed link and Python downloads it into the series folder.</p>
+
+<h2>4. Where the truth lives</h2>
+<div class="wrap">
+<table>
+  <tr><th>Thing</th><th>Source of truth</th><th>Copy</th><th>Why</th></tr>
+  <tr><td>A game while you enter it</td><td><code>gN.draft.json</code> on the PC</td><td>none</td><td>Autosaves every edit, no network needed.</td></tr>
+  <tr><td>A saved game</td><td><code>gN.json</code> on the PC</td><td>Convex <code>games</code> row after push</td><td>The JSON is the record you can commit and diff.</td></tr>
+  <tr><td>Draft statistics</td><td>Convex <code>draftActions</code></td><td>derived from the JSON</td><td>One row per action makes "first pick" an indexed query.</td></tr>
+  <tr><td>Screenshots</td><td>Convex file storage</td><td>local file, a cache</td><td><code>purge-images</code> deletes the cache; the app fetches again on demand.</td></tr>
+  <tr><td>Hero art and learned crops</td><td>PC only</td><td>none</td><td>Garena artwork and training data, kept out of git and Convex.</td></tr>
+</table>
+</div>
+<div class="note"><span class="crit">One rule to remember.</span> Recognition needs the image file on the PC. If you purged it, the app downloads it back from Convex before Recognise runs. That is the only moment a stored image comes home.</div>
+
+<h2>5. Which language runs where, and why</h2>
+<div class="wrap">
+<table>
+  <tr><th>Layer</th><th>Language</th><th>Runs on</th><th>Why that language</th></tr>
+  <tr><td>Browser pages</td><td>HTML, CSS, JavaScript</td><td>any browser on the LAN</td><td>Browsers run JavaScript, nothing else.</td></tr>
+  <tr><td>Extractor API and recognition</td><td>Python</td><td>your PC</td><td>OpenCV and RapidOCR are Python libraries. Local CPU, no cloud cost.</td></tr>
+  <tr><td>Convex functions</td><td>TypeScript</td><td>the NAS, inside Convex</td><td>Convex only executes JavaScript or TypeScript. Deployed, not run locally.</td></tr>
+  <tr><td>Dashboard</td><td>TypeScript, React</td><td>browser, later Vercel or Cloudflare</td><td>The Convex React client gives live queries for free.</td></tr>
+</table>
+</div>
+<p>This is the classic three-tier split of client, API and database, with one twist: Convex plays both the API and the database, and it accepts clients written in any language. The Python program and the future TypeScript dashboard are simply two clients of the same backend.</p>
+
+<h2>6. Reading list</h2>
+<ol>
+  <li><a href="https://docs.convex.dev/functions" target="_blank" rel="noopener noreferrer">Convex Functions</a>: queries, mutations and actions, the endpoint model behind <code>games:upsert</code>.</li>
+  <li><a href="https://docs.convex.dev/client/python" target="_blank" rel="noopener noreferrer">Convex Python client</a>: exactly what <code>push.py</code> uses, including admin auth for self-hosting.</li>
+  <li><a href="https://docs.convex.dev/file-storage/upload-files" target="_blank" rel="noopener noreferrer">Convex file storage, uploading files</a>: the three-call upload pattern.</li>
+  <li><a href="https://github.com/get-convex/convex-backend/blob/main/self-hosted/README.md" target="_blank" rel="noopener noreferrer">Convex self-hosting guide</a>: the environment variables your NAS setup uses.</li>
+  <li><a href="https://fastapi.tiangolo.com/tutorial/first-steps/" target="_blank" rel="noopener noreferrer">FastAPI first steps</a> and <a href="https://fastapi.tiangolo.com/tutorial/static-files/" target="_blank" rel="noopener noreferrer">static files</a>: how the Python server serves the page and the API.</li>
+  <li><a href="https://martinfowler.com/bliki/PresentationDomainDataLayering.html" target="_blank" rel="noopener noreferrer">Presentation, domain, data layering</a>: the general pattern this project follows.</li>
+</ol>
+
+</body>
+</html>

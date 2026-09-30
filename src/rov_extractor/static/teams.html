@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teams · RoV Draft Extractor</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/teams.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-left"><a class="brand" href="/">RoV Draft Extractor</a><nav class="crumbs"><span class="sep">/</span><span>Teams</span></nav></div>
+  <div class="top-right">
+    <span class="state" id="status-save"><i class="dot"></i><span>Idle</span></span>
+    <a class="link" href="/">Back to matches</a>
+  </div>
+</header>
+
+<main class="teams-main">
+  <div class="card-head">
+    <div>
+      <h3>Team master</h3>
+      <div class="hint">The players of each team and the position they play. The game form fills the lane of a player from here, and Recognise reads player names against these lists.</div>
+    </div>
+    <div class="actions">
+      <input id="filter" placeholder="Filter teams or players…">
+      <button class="btn primary" id="btn-save">Save<kbd>Ctrl S</kbd></button>
+    </div>
+  </div>
+  <div class="teams" id="teams"></div>
+</main>
+
+<div id="toast" class="toast" hidden></div>
+<script src="/static/teams.js"></script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+{
+  "note": "Rosters seed. New names typed in the form are added here automatically.",
+  "players": {
+    "FS": [
+      {
+        "name": "Ashearth",
+        "lane": "DSL"
+      },
+      {
+        "name": "Overone",
+        "lane": "JGL"
+      },
+      {
+        "name": "Agetsive",
+        "lane": "MID"
+      },
+      {
+        "name": "Sharkz",
+        "lane": "ADL"
+      },
+      {
+        "name": "Noarje",
+        "lane": "SUP"
+      }
+    ],
+    "BRU": [
+      {
+        "name": "Deawwy",
+        "lane": null
+      },
+      {
+        "name": "Ligky",
+        "lane": null
+      },
+      {
+        "name": "Nunu",
+        "lane": null
+      },
+      {
+        "name": "Almondp",
+        "lane": null
+      },
+      {
+        "name": "Littleboyz",
+        "lane": null
+      }
+    ],
+    "SLX": [
+      {
+        "name": "Joelong",
+        "lane": null
+      },
+      {
+        "name": "1s1k",
+        "lane": null
+      },
+      {
+        "name": "Psocute",
+        "lane": null
+      },
+      {
+        "name": "Myra",
+        "lane": null
+      },
+      {
+        "name": "Farook",
+        "lane": null
+      }
+    ],
+    "TEN": [
+      {
+        "name": "Srv",
+        "lane": null
+      },
+      {
+        "name": "Erez",
+        "lane": null
+      },
+      {
+        "name": "Fakeplavz",
+        "lane": null
+      },
+      {
+        "name": "Moop",
+        "lane": null
+      },
+      {
+        "name": "Difoxn",
+        "lane": null
+      }
+    ],
+    "BAC": [
+      {
+        "name": "Markky",
+        "lane": null
+      },
+      {
+        "name": "Bonus",
+        "lane": null
+      },
+      {
+        "name": "Kimsensei",
+        "lane": null
+      },
+      {
+        "name": "Opar",
+        "lane": null
+      },
+      {
+        "name": "Alawin",
+        "lane": null
+      }
+    ],
+    "KOG": [
+      {
+        "name": "Jdust",
+        "lane": null
+      },
+      {
+        "name": "Nightza",
+        "lane": null
+      },
+      {
+        "name": "Pupu",
+        "lane": null
+      },
+      {
+        "name": "Cinderella",
+        "lane": null
+      },
+      {
+        "name": "Baskung",
+        "lane": null
+      }
+    ],
+    "HD": [
+      {
+        "name": "Acapae",
+        "lane": null
+      },
+      {
+        "name": "Wonderwall",
+        "lane": null
+      },
+      {
+        "name": "Barely",
+        "lane": null
+      },
+      {
+        "name": "Commiw",
+        "lane": null
+      },
+      {
+        "name": "Possu",
+        "lane": null
+      }
+    ],
+    "EA": [],
+    "GJC": []
+  }
+}

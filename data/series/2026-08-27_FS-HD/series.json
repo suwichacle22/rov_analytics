@@ -1,0 +1,16 @@
+{
+  "seriesId": "2026-08-27_FS-HD",
+  "tournament": "rpl-2026-winter",
+  "stage": "leg1",
+  "bestOf": 5,
+  "date": "2026-08-27",
+  "dateManual": false,
+  "patch": "",
+  "teamA": "FS",
+  "teamB": "HD",
+  "homeTeam": "FS",
+  "vodUrl": "https://www.youtube.com/watch?v=HR6VTKtcghs",
+  "layout": "rpl2026",
+  "notes": "",
+  "winner": null
+}

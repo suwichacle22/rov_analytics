@@ -1,181 +1,191 @@
 # rov_analytics
 
-Track a pro Arena of Valor (RoV) player on the minimap from video, then build positioning analytics: heatmaps, path, zone dwell time, rotations.
+Team draft statistics for RoV (Arena of Valor) pro play, built from broadcast screenshots.
 
-No game API is needed. The program reads the minimap out of a broadcast VOD or a screen recording, finds one known hero icon in every frame, and writes a CSV of positions.
+Two programs share one data model. This repository holds the first one, the **extractor**, which runs on your PC. It also has a local Dashboard page that shows the statistics of the games on this PC. The public dashboard (TanStack Start plus Convex) comes later and reads what the extractor writes. Spec: `docs/rov-draft-stats-spec.pdf`.
 
-Research behind the design: `docs/research/moba-positioning-analytics-research.html`.
+## Extractor
 
-## Setup
+Two words are used throughout. A **match** is two teams meeting in a best of five or seven, for example FS vs TEN. A **game** is one game inside it, G1 to G7. Names in code and storage still say `series` for a match: `seriesId`, `data/series/`, `series.json` and the Convex `series` table.
 
-Python 3.14 and uv. ffmpeg is bundled through a pip package, nothing else to install.
+Python 3.12 or newer and uv.
 
 ```
 python -m uv sync
-python -m uv run rov --help
+python -m uv run rov-extract serve
 ```
 
-## Web app: paste a link, watch the heatmap build
+Open http://127.0.0.1:8787. On Windows, double-click `RoV Extractor.cmd` instead: it installs dependencies on first run, starts the server and opens the browser. Close its window to stop.
+
+The launcher starts with `--reload`, so a change to any Python file under `src/` restarts the server on its own; edits to the HTML, CSS and JavaScript need only a browser reload. Changes under `data/` never restart it. The launcher also starts with `--lan`, so a phone on the same Wi-Fi can open the app too. The window prints the address, for example `http://192.168.1.110:8787`. Both the editor and the Heroes page have a phone layout; on a phone the checks and the Save button sit in a sheet at the bottom. Only devices on your network can reach it, there is no login, and the first start may show a Windows Firewall prompt for Python where you should allow private networks. Leave `--lan` off to keep it on this PC only.
+
+The page has three columns: matches on the left, the game in the middle as four numbered steps, and the checks on the right with the Save button. Game tabs sit in the top bar. The address bar holds `#<match>/<game>`, so a reload or a bookmark reopens the same game.
+
+1. **New match.** Tournament, match type (Regular season, Leg 1, Leg 2, Playoff, Final), best of, date, both teams, and which team is home. Patch and source link are optional. The source link is the video the match was taken from, for example the YouTube broadcast. It is stored once for the match, not per game, and can be changed later in the Source link field under the match title. This creates `data/series/<date>_<A>-<B>/series.json`.
+2. **Game setup and screenshots.** Blue side, winner, duration, and an optional patch. Drop the two screenshots in (draft bar before the swap, post-game stats screen). They are copied into the match folder, and stored in Convex as well when it is configured.
+3. **Draft.** Enter each slot as the screen shows it, left to right. Each slot shows the hero art once chosen, the badge gives the pick number and step, and the slot for the next step in draft order is outlined. The name under a pick is the player who played that hero. It is read from the post-game table and cannot be typed here. Type a few letters of a hero name and press Enter to move on in draft order. The strip under the bar is the 18-step sequence.
+4. **Post-game.** One row per player: name, the hero played, lane (filled from the Teams page when the player is listed there), K/D/A, damage, and the team totals. Numbers accept `48.25k`. This table is the only source for who played which hero. "Prefill names" copies the names under the draft bar into empty name fields and nothing else.
+5. **Save.** The checks column must show no errors. Ctrl+S or the Save button writes `g<N>.json`. Warnings do not block saving. A step's number fills in white when that step is complete.
+
+Everything you type is autosaved to `g<N>.draft.json` while you work. Drafts are gitignored, saved games are committed.
+
+### Recognise
+
+With one or both images attached, press **Recognise**. It never saves. Amber borders mark guesses to check, green ones confident values.
+
+A bar under the button shows the percent done and the part being read. The percent is an estimate from the usual cost of each step, corrected by the speed of this PC as the run goes.
+
+The result belongs to the game that asked for it. If you open another game while it runs, that game is left alone and the values are filled in when you open the first game again. Reloading the page while it waits drops the result, so press Recognise again.
+
+- **Empty fields** are filled.
+- **Heroes it is sure about** replace what the field holds, and the message lists every correction. A field that repeats a hero placed elsewhere for certain is cleared.
+- **Fields you set by hand** since the page was opened are kept.
+- **A hero it cannot name** stays empty with the closest candidates listed first in that slot's search box. An empty field asks for your choice; a wrong name would hide the problem.
+
+What is read:
+
+- **From the draft bar:** the caption (game number, teams), the seat names, and the hero of each of the 18 slots.
+- **From the post-game screen:** winner, duration, each player's name, K/D/A, damage dealt and taken, the five team totals, the eight bans again, and the hero in each portrait.
+
+#### How heroes are named
+
+The broadcast draws every hero from the same splash art as `data/ref/art/heropick`, zoomed and cropped differently per hero. A pick shows the upper body, a ban icon and a post-game portrait show the face. `artmatch.py` searches for the crop inside each splash at several zoom levels. The right hero scores 0.8 to 1.0 and the others stay near 0.6.
+
+- **One hero, one slot.** The 18 slots are decided together, best matches first. No hero is proposed twice in a game.
+- **Global Ban-Pick.** A team is never offered a hero it picked in an earlier saved game of the match, except in game 7 of a best of seven.
+- **Second opinions.** Each ban is read from the draft bar and from the post-game header, and the better reading counts. A pick is lifted when a post-game portrait of the same team shows that hero for certain.
+- **Confident** means a score of 0.80 or more with the next hero at least 0.12 behind. Below 0.62 nothing is proposed.
+- **Forms of one hero.** Flowborn (Carry) and Flowborn (Mage) show the same artwork. Only the small white badge in the top right corner differs, a bow or a flame, so between forms the badge decides and the artwork does not. The badge is taken from crops of confirmed games, because the broadcast draws it differently from the seed art. A form whose badge was never seen is proposed as a guess when the badge on screen is none of the known ones. Heroes count as forms of one hero when their names differ only in the bracket.
+
+A hero with no art in the seed set, or with newer art, cannot be named the first time. Choose it by hand and save the game. The crop of that slot is then kept in `data/ref/crops` and the hero is recognised from then on. Crops are kept only for slots the artwork did not already name, so the folder stays small. `rov-extract relearn` rebuilds it from all saved games. `rov-extract recognise <match> <game>` prints the raw proposal.
+
+#### Seats and players
+
+The name under a pick on the broadcast is the seat that made the pick. After a swap it is not the player who plays the hero. The post-game screen shows the truth. So every pick in a saved game carries `player` and `lane` from the post-game table, and the seat name is kept separately as `preSwapPlayer`. Each post-game row is tied to a pick through the hero in its portrait, and through image comparison when that hero has no art.
+
+### Teams page
+
+The **Teams** link in the top bar opens the team master: one card per team with its players and the position each one plays (DSL, JGL, MID, ADL, SUP). Add, rename or remove players and press Save. It is stored in `data/ref/players.json`.
+
+- The game form fills the lane of a post-game row from here as soon as the row has a player name. A lane you choose by hand is kept.
+- Recognise reads player names against these lists, so a name spelled here is the spelling that lands in the form.
+- Saving a game adds player names that are not listed yet, without a position.
+- A card says which positions have no player yet.
+
+### Dashboard
+
+`/dashboard` (the Dashboard link in the top bar) shows the draft statistics of one team, computed on every load from the games in `data/series`. Choose the team and the match type in the filter row; the address keeps both, for example `/dashboard?team=FS&stage=leg1`.
+
+- **What counts.** A saved game counts as checked. A game that only has a draft, for example straight from Recognise, is included too and the notice at the top says how many of those there are. A slot without a hero is left out of the hero tables and counted in the notice. A game chip in the Matches table opens that game in the form.
+- **Sections.** Record by match, game and side, and average game time. Picks with won and lost and who played the hero. Picks against the team. Hero pool of each player. Bans by and against the team, split by ban phase. First pick on blue side, first two picks on red side, and the opponent's first pick. Position by pick order. Answers to an opponent pick: the hero the team picked in its next turn, for pairs seen at least twice. Most contested heroes. Per-game totals and player averages.
+- **Who played a hero** comes from the post-game table, so a swap after the draft is already counted for the right player. Position by pick order needs the positions from the Teams page.
+- The numbers come from `team_stats` in `src/rov_extractor/stats.py`, served at `/api/stats?team=&stage=`. The public dashboard should use the same definitions.
+
+### Heroes page
+
+The **Heroes** link in the top bar opens a table of every hero with its ban icon, its pick art, its id and name, and the broadcast crops learned so far. Use it to confirm each hero is paired with the right image: pick another file from the dropdown when one is wrong, tick **Checked** or double-click the row (double-tap on a phone) when it is right, rename or remove heroes, or add a new one. Rows without art are highlighted, and files that no hero uses are listed at the bottom. The pairing is saved to `data/ref/art-map.json` and the recogniser reads it from there. When Convex is configured, every Save also mirrors the hero list (id, name, forms, checked, whether art exists) into the `heroes` table for the dashboard; `rov-extract push --heroes` does the same from the command line. Each hero's ban icon and pick art are uploaded to Convex file storage once, their storage ids are cached in `art-map.json`, and only files you change are sent again. The dashboard reads `heroes:listWithArt` to get names and image URLs.
+
+You can also teach the recogniser directly from this page. Drop a crop from a broadcast screenshot on a hero's row (a tall crop is stored as a pick splash, a roughly square one as a ban icon), or use the "+ ban" and "+ pick" buttons. Hovering a learned crop shows a delete button for wrong ones.
+
+Draft-bar images can be a tight crop of the bar or a full 16:9 frame. Post-game images must be a full 16:9 screenshot. Geometry for the RPL 2026 broadcast is in the layout file; a new broadcast design needs a new layout.
+
+### Draft order
+
+RPL 2026 slots fill in draft order, blue from the left inward and red from the right inward:
+
+| | Screen slot 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| Blue bans | B1 | B3 | B6 | B8 | |
+| Red bans | B7 | B5 | B4 | B2 | |
+| Blue picks | P1 | P4 | P5 | P8 | P9 |
+| Red picks | P10 | P7 | P6 | P3 | P2 |
+
+Sequence: bans 1 to 4, picks 1 to 6, bans 5 to 8, picks 7 to 10. The mapping lives in `data/ref/layouts/rpl2026.json`; add a new layout file if a broadcast changes.
+
+### Checks before save
+
+- 4 bans and 5 picks per side, 18 actions, every hero known.
+- No hero twice in a game. Flowborn is one hero per form (Flowborn (Carry), Flowborn (Mage), add more on the Heroes page), so its forms are drafted and counted separately.
+- Global Ban-Pick: a team cannot pick a hero it picked earlier in the same match, except game 7 of a Bo7.
+- Five distinct players and five distinct lanes per team, and the post-swap heroes must equal that team's picks.
+- Winner and duration set.
+
+### Screenshots
+
+Attach a screenshot by clicking a box, dropping a file on it, or pasting. Ctrl V puts a copied image into the box under the pointer, or into the first empty box when the pointer is elsewhere. Each box also has a Paste button when the page is open on `localhost` or `127.0.0.1`; browsers do not allow that button on a plain network address, where Ctrl V still works.
+
+The original file name is not kept. Every screenshot is stored as `<teamA>_vs_<teamB>_<match type>_g<N>_<draft|post>.<ext>`, for example `FS_vs_BRU_leg1_g1_draft.png`. Changing the match type renames the files of that match, the names inside its game files, and the records in Convex. Files named the old way (`g1_draft.png`) are still found.
+
+### Screenshots from the source video
 
 ```
-python -m uv run rov-web
+python -m uv run rov-extract grab <match> [--game N] [--force] [--dry-run]
 ```
 
-Open http://127.0.0.1:8000. The page has three steps:
+`grab` takes both screenshots of every game straight from the match's source link. The Garena broadcasts on YouTube have a chapter where each draft starts and one where each game starts, and the team pair in the chapter title finds the games of this match. A missing chapter is estimated from the other one of that game, and the line for that game says so.
 
-1. **Video.** Paste a YouTube link, enter the VOD time where the in-game clock reads 0:00 and where the game ends, and press "Fetch clip". A 16-minute game arrives in about a minute. The clock offset for step 3 is filled in automatically. Or pick a clip fetched earlier; local file paths work too.
-2. **Hero.** Choose the broadcast layout and the hero template. If the hero has no template yet, open "Make a new template", type the hero name, pick a clip second where the icon is clearly visible, press "Show", and click the centre of the icon on the minimap. The template is saved and selected.
-3. **Track.** Check the auto-filled clock offset (edit it if the clip came from elsewhere) and press "Start tracking".
+- **Draft.** Between the draft chapter and a minute after the game chapter it looks for the first frame where all ten picks are filled and the blue turn marker under the team logos is gone. That is the moment the last pick locks and the swap phase starts. The screenshot must show the start of the swap phase, with the timer on the bar just reset to 00:59 (00:57 at the latest) and no hero swapped yet; a draft where no such frame is found is reported and not attached. The caption must name both teams and the right game.
+- **Post-game.** From 5 minutes after the game chapter until the next draft, the next match or 60 minutes, it looks every 5 seconds for the full-screen GAME STATS screen. It takes the frame in the middle of the time the screen is shown, where the game time, VICTORY or DEFEAT and all 20 damage numbers can be read.
 
-While it runs you see the live minimap with a circle on the tracked hero, the heatmap growing once per game second, game time, coverage, the current zone and time per zone. When it finishes, the final heatmap, path image, four phase heatmaps and the CSV are linked at the bottom. Outputs land in `data/tracks/` exactly as with the CLI.
+Frames are saved as 1080p PNG files under the usual names and uploaded to Convex like a screenshot attached in the app. A game that already has a screenshot of that kind keeps it unless you pass `--force`. `--dry-run` prints the times and attaches nothing. Each game gets one line with the times it chose (h:mm:ss in the video), and a `?` with a reason under it when something did not check out. Look at those screenshots before you press Recognise.
 
-Video decoding uses the bundled ffmpeg with GPU acceleration when available (CUDA, then D3D11VA, then software). On an NVIDIA machine a 16-minute 1080p60 game processes in about 2 to 3 minutes.
+Only the parts of the video it needs are downloaded: the scan runs on the 144p and 360p streams, five seconds at a time, and only the chosen frames come from the 1080p stream. No ffmpeg is needed. It takes about a minute per game. Temporary files go to `data/grab_tmp/` and are removed at the end.
 
-The app runs on your machine because the tracking needs Python and OpenCV. It is not deployable to Vercel or Cloudflare as is; a cloud version would need a server that can run the worker.
+### Match date
 
-## Workflow for a real match
+The screenshots show no date, so the day of a match is read from its source link. The New match dialog fills the date as soon as a source link is entered; while the video is being read, the Create match button says "Reading the date…" and is disabled, and a submit sent in that moment waits for the date, so a match is never created with today's date by accident. Recognise checks it again and corrects the match when the video says another day. A date typed by hand, in the dialog or in the Date field under the match title, is kept and never replaced. A match without a source link keeps the date it was created with. The day is taken in Thai time (`BROADCAST_TZ` in `src/rov_extractor/source.py`).
 
-**1. Get the video.** Either paste a YouTube link or use your own recording.
+The id of a match, and with it the folder name, is fixed when the match is created and keeps that day. A second match that would get the same id takes a number, for example `2026-09-29_FS-KOG-2`.
 
-Tournament VODs are often a whole broadcast day, many hours long. Do not download all of it. Find the game in the YouTube player, note when it starts and ends, and download only that range. ffmpeg is bundled, nothing to install.
+### Match type
 
-```
-python -m uv run rov download "https://www.youtube.com/watch?v=..." -o data/videos/rpl_g1.mp4 --from 1:23:40 --to 1:45:30
-python -m uv run rov info data/videos/rpl_g1.mp4
-```
+Every match has a match type: Regular season, Leg 1, Leg 2, Playoff or Final. It is stored as `stage` in `series.json` (`regular`, `leg1`, `leg2`, `playoffs`, `final`). Choose it in the New match dialog, or change it later with the Match type field under the match title. Changing it also updates the saved games of that match and pushes them to Convex again. The list lives in `STAGES` in `src/rov_extractor/models.py`.
 
-Audio is skipped by default. A 20-minute 1080p game is roughly 300 to 600 MB and takes about a minute: the downloader reads the stream's segment index and fetches exactly the bytes for the range over eight parallel connections, which sidesteps YouTube's per-stream throttling. The clip begins at the 5-second segment boundary at or before `--from`; the exact offset is printed and saved in `<clip>.meta.json`. If `--from` is the moment the in-game clock reads 0:00, pass that offset as `--game-start` when tracking. Leave `--from` and `--to` off to download the whole video.
+### Deleting
 
-**2. Calibrate the source once per broadcast layout.** Opens a window. Drag a box around the minimap, then around one hero icon, then click one blue ring pixel and one red ring pixel. Saved as a JSON you reuse for every video from that tournament.
+Each match in the left rail has a menu button with Delete match. The open game has a menu button beside the score with Delete game N and Delete match. Both ask for confirmation.
 
-```
-python -m uv run rov calibrate data/videos/rpl_g1.mp4 --name rpl2026 -o configs/sources/rpl2026.json --time 30
-```
+- Delete game removes that game's saved record, draft, recognition proposal and screenshots, and the hero crops learned from it. The other games of the match stay and the match score is recomputed.
+- Delete match removes the whole match folder.
+- With Convex configured the same rows and stored screenshots are removed there first (`games:removeGame`, `games:removeSeries`). If Convex does not answer, nothing is deleted.
 
-Check `configs/sources/rpl2026.minimap.png` to confirm the crop is right.
-
-**3. Make a template for each hero you have not seen before.** Templates are keyed by hero, not player, because a hero's minimap face is the same in every game and on either side. Pick a video second where the hero stands alone (base at game start is ideal) and drag a box around the icon.
+### Command line
 
 ```
-python -m uv run rov template data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --hero zill --time 35
+python -m uv run rov-extract list                 # matches and games on disk
+python -m uv run rov-extract validate [match]     # re-run the checks on saved games
+python -m uv run rov-extract push [match] [--game N]
 ```
 
-Saved as `templates/<source>/<hero>.png`. Over a season the folder fills up and new games need no new crops.
-
-**4. Describe the game in a manifest.** One JSON per game, filled from the draft screen: who played which hero on which side, plus where the clock reads 0:00 in the clip.
-
 ```
-python -m uv run rov match-init data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --game-start 3 -o configs/matches/rpl_g1.json
+python -m uv run rov-extract purge-images [match] [--dry-run]   # drop local screenshots already in Convex
 ```
 
-Then edit the file:
+`push` sends a saved game to Convex through the mutation `games:upsert` and uploads its screenshots if they are not stored yet. Put `CONVEX_URL=https://<deployment>.convex.cloud` in `.env.local`, or for a self-hosted Convex `CONVEX_SELF_HOSTED_URL=http://<host>:3210` and `CONVEX_SELF_HOSTED_ADMIN_KEY=...`.
 
-```json
-{"player": "FS Overone", "hero": "zill", "side": "blue", "role": "jungle"}
-```
+### Convex backend
 
-**5. Track by player name.** The tool resolves player to hero to template. If a template is missing it stops and names the hero you need to crop.
+Each pick in the `draftActions` table has `player` and `lane` (who played the hero, from the post-game table) and `seatPlayer` (the seat that made the pick). Use `player` for every statistic about players. The `by_player` index serves those queries.
 
-```
-python -m uv run rov track --match configs/matches/rpl_g1.json --player "FS Overone" --debug-video data/tracks/rpl_g1_debug.mp4
-python -m uv run rov track --match configs/matches/rpl_g1.json --all
-```
+Each row of the `series` table has `vodUrl`, the source link of the match.
 
-You can still skip the manifest and pass everything by hand:
+The functions live in `convex/` at the repo root: `schema.ts` (series, games, one row per draft action, images), `games.ts` (`upsert`, `remove`, `listSeries`, `bySeries`) and `files.ts` (upload URL, `saveImage`, `imageUrl`, `listImages`). Deploy them with Bun:
 
 ```
-python -m uv run rov track data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --hero zill --side blue --game-start 3
+bun install
+bunx convex deploy
 ```
 
-Outputs per hero:
+The CLI reads the same variables from `.env.local`. Screenshots attached in the app are copied into the match folder and, when Convex is configured, uploaded to Convex file storage at the same time. The local copy is a cache: `purge-images` deletes the ones already stored, and the app or `recognise` downloads a file again when it needs it. The hero art and learned crops stay local.
 
-- `data/tracks/<match>_<hero>.csv`, one row per half second: game time, x and y in 0..1, zone, match score, status.
-- `data/tracks/<match>_<hero>.summary.json`: coverage, distance, zone changes per minute, dwell seconds per zone.
-- `data/tracks/<match>_<hero>_heatmap.png`: temperature heatmap (inferno ramp, transparent where never visited) over a clean minimap built from the median of many frames, with a colour bar. `_path.png` is the full trajectory.
-- The debug video shows the minimap with a circle on the detected position. White circle means detected, red means held from the previous frame. Watch this first when something looks wrong.
+### Reference data
 
-**6. Re-render for a time window** without re-tracking:
+`data/ref/heroes.json` (hero ids and names; Flowborn forms are separate heroes), `teams.json` (RPL 2026 Winter), `players.json` (rosters, grows automatically as you save games), `tournaments.json`, `layouts/`. Edit these by hand when a hero or team is added.
 
-```
-python -m uv run rov heatmap data/tracks/rpl_g1_zill.csv --video data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --min-sec 0 --max-sec 240
-```
+### Game JSON
 
-**7. Phase heatmaps.** One heatmap per game window plus a combined sheet. Default windows are 0-4, 4-8, 8-15 and 15-end minutes.
+One file per game. `draft` is the 18-step sequence with `seq`, `phase`, `side`, `team`, `action`, `hero`, `slot` and, for picks, the pre-swap player name shown on the bar. `players` holds the post-swap hero per player with lane and stats. `input` keeps the raw form state so the game can be reopened and edited.
 
-```
-python -m uv run rov phases data/tracks/rpl_g1_zill.csv --video data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json --phases "0-4,4-8,8-15,15-"
-```
+## History
 
-**8. Zones.** The default zone layout is geometric: bases by corner distance, side lanes as edge strips, mid lane as a band on the main diagonal, river as a band on the anti-diagonal, objective pits as circles, and the rest is jungle split into four quadrants. Check it over a real frame:
-
-```
-python -m uv run rov zones-preview data/videos/rpl_g1.mp4 --source configs/sources/rpl2026.json -o data/zones_preview.png
-```
-
-To tune it, write a JSON object with any of the parameters in `GeometricZones` (for example `{"mid_band": 0.06, "pit_radius": 0.09}`) and pass it with `--zones`. For fully hand-drawn regions, `rov zones-init` exports polygons that override the geometry where they exist.
-
-Changing zones does not require re-tracking. Re-label existing CSVs and rewrite their summaries:
-
-```
-python -m uv run rov rezone data/tracks/rpl_g1_*.csv --zones configs/zones/mine.json
-```
-
-## How detection works
-
-- Crop the minimap using the calibrated box.
-- Slide the hero template over the crop and score similarity at every position (OpenCV normalised cross-correlation).
-- Only accept positions where enough team-ring-coloured pixels are present, which rules out the enemy team and most of the map.
-- Take the best score above `--min-score` (default 0.55).
-- A tracker rejects jumps larger than a hero can walk in one sample, holds the last position for up to 3 seconds when the icon is hidden, and re-acquires after a recall or teleport when the new position repeats for 3 frames.
-- Pixel position divided by crop size gives map coordinates in 0..1, then a point-in-polygon lookup gives the zone.
-
-## Synthetic self-test
-
-Generates a fake broadcast with a scripted jungler route, a ping distractor, nine other heroes, a recall teleport and a 2-second overlay covering the minimap. Then tracks it and scores against ground truth.
-
-```
-python -m uv run python scripts/make_synthetic_video.py data/synthetic/game.mp4 --seconds 60
-python -m uv run rov calibrate data/synthetic/game.mp4 --name synthetic -o configs/sources/synthetic.json --time 0.1 --box 20,480,220,220 --icon-diameter 20
-python -m uv run rov template data/synthetic/game.mp4 --source configs/sources/synthetic.json --hero TestJungler --time 0.1 --box 12,188,20,20
-python -m uv run rov track data/synthetic/game.mp4 --source configs/sources/synthetic.json --hero TestJungler --side blue --debug-video data/synthetic/debug.mp4
-python -m uv run python scripts/eval_synthetic.py data/tracks/game_testjungler.csv data/synthetic/game.truth.csv
-```
-
-Expected: median error under 1 px, misses only during the teleport and the overlay.
-
-## Tuning when a real video misbehaves
-
-- Circle never appears: ring colour range is wrong. Re-run `calibrate` and click carefully on the ring, or edit `ring_ranges` in the source JSON.
-- Circle jumps to a teammate in fights: raise `--min-score` to 0.65 or lower `max_speed_norm_per_sec` in `track.py`.
-- Circle lost after recall: lower `reacquire_frames` in `track.py`.
-- Broadcast cuts to a replay or a face cam: those frames show as held or gap. Coverage in the summary tells you how much of the game was usable.
-
-## Layout
-
-```
-src/rov_analytics/
-  config.py     source config: minimap box, icon size, ring colours
-  video.py      yt-dlp download, ffmpeg/OpenCV frame iterator, clean background
-  calibrate.py  interactive box and colour pickers, template saving
-  detect.py     template match gated by ring colour
-  track.py      jump rejection, hold, re-acquire
-  zones.py      zone polygons and lookup, default AoV layout
-  analytics.py  CSV I/O, heatmap grid, summary stats
-  render.py     heatmap and path images, debug video
-  pipeline.py   glue
-  match.py      match manifest: video, source, who played which hero
-  cli.py        `rov` commands
-  web/          FastAPI server and single-page app (`rov-web`)
-scripts/        synthetic video generator and evaluator
-configs/        source configs, match manifests, zone files
-templates/      hero icon templates per source
-data/           videos and outputs (ignored by git)
-```
-
-## Next steps
-
-- Track all ten heroes in one pass and compute team metrics: within-team distance, convex hull, jungle proximity.
-- Read the game clock by OCR so `--start` is found automatically.
-- Detect when the minimap is covered by an overlay instead of relying on low scores.
-- Swap template matching for a small YOLO trained on synthetic minimaps once real broadcasts show its limits.
-- Dashboard over many games (TanStack Start plus Convex): timeline scrubber, heatmap filters, two-player comparison, per-hero and per-team baselines.
+The repository previously held a minimap position tracker. It was removed on 24 September 2026 and lives in git history before that commit.

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RoV Draft Statistics Spec</title>
+<style>
+  @page {
+    size: 157mm 210mm;
+    margin: 11mm 11mm 13mm 15mm;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    color: #000;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12.5pt;
+    line-height: 1.55;
+  }
+  h1 { font-size: 21pt; line-height: 1.2; margin: 0 0 2mm 0; }
+  .doc-date {
+    font-size: 10pt; color: #333; margin: 0 0 8mm 0;
+    padding-bottom: 3mm; border-bottom: 1.5pt solid #000;
+  }
+  h2 {
+    font-size: 15.5pt; line-height: 1.25; margin: 9mm 0 2.5mm 0;
+    padding-bottom: 1mm; border-bottom: 0.75pt solid #000; page-break-after: avoid;
+  }
+  h3 { font-size: 13pt; margin: 6mm 0 1.5mm 0; page-break-after: avoid; }
+  p { margin: 0 0 3mm 0; }
+  ul, ol { margin: 0 0 3mm 0; padding-left: 7mm; }
+  li { margin-bottom: 1.2mm; }
+  li > ul, li > ol { margin-top: 1.2mm; margin-bottom: 0; }
+  pre {
+    font-family: Consolas, "Courier New", monospace; font-size: 9.5pt; line-height: 1.4;
+    border: 0.75pt solid #000; padding: 2.5mm 3mm; margin: 0 0 3.5mm 0;
+    white-space: pre-wrap; word-wrap: break-word; page-break-inside: avoid;
+  }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 0.85em; }
+  blockquote { margin: 0 0 3mm 0; padding: 0.5mm 0 0.5mm 4mm; border-left: 2pt solid #000; font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 0 0 4mm 0; font-size: 10.5pt; page-break-inside: avoid; }
+  th, td { border: 0.75pt solid #000; padding: 1.5mm 2.5mm; text-align: left; vertical-align: top; }
+  th { font-weight: bold; border-bottom-width: 1.5pt; }
+  a { color: #000; text-decoration: underline; }
+  hr { border: none; border-top: 0.75pt solid #000; margin: 6mm 0; }
+  strong { font-weight: bold; }
+  li.task { list-style: none; margin-left: -7mm; padding-left: 7mm; }
+  .toc { margin-bottom: 8mm; }
+  .toc ul { list-style: none; padding-left: 4mm; }
+</style>
+</head>
+<body>
+  <h1>RoV Draft Statistics Spec</h1>
+  <p class="doc-date">24 September 2026 · rov_analytics · discussion outcome, nothing built yet</p>
+
+  <div class="toc">
+    <ul>
+      <li>1. Purpose and scope</li>
+      <li>2. Facts about RPL that shape the design</li>
+      <li>3. Legal position of the data</li>
+      <li>4. The two programs</li>
+      <li>5. Input images and what each one gives</li>
+      <li>6. Data model</li>
+      <li>7. Draft sequence and validation rules</li>
+      <li>8. Statistics for the dashboard</li>
+      <li>9. Storage and hosting</li>
+      <li>10. Build order</li>
+      <li>11. Open questions</li>
+    </ul>
+  </div>
+
+  <h2>1. Purpose and scope</h2>
+  <p>The program collects the draft of every professional Arena of Valor game (RoV in Thailand, league RPL) played by one team, and turns it into scouting statistics: what the team picks first, what it bans, what opponents ban against it, how it answers a given opponent pick, and how it manages its hero pool across a series.</p>
+  <p>The first focus team is <strong>Full Sense (FS)</strong>. The data model is team-neutral. Focus is only a filter in the dashboard. Every Full Sense game contains the opponent's full draft as well, so when a second team is added later, its games against Full Sense are already in the database and count immediately. Until that team's other games are entered, its statistics describe only how it plays against Full Sense, and the dashboard must show the number of games behind every team-level number so this partial view is visible.</p>
+  <p>The input is images of the broadcast, supplied by the user. Automatic frame capture from VODs is postponed. Recognition of heroes from the images is postponed as well; version one is manual entry through a form that validates the draft.</p>
+  <p>The previous project in this repository, a minimap position tracker, was removed on 24 September 2026 and remains in git history only.</p>
+
+  <h2>2. Facts about RPL that shape the design</h2>
+  <ul>
+    <li><strong>Season size.</strong> RPL 2026 Winter has 9 teams, double round robin, every match best of five. The top four play a double-elimination bracket of best-of-seven series. A season is roughly 230 to 390 games. Full Sense alone plays about 16 regular-season series, so 50 to 80 games.</li>
+    <li><strong>Global Ban-Pick.</strong> Applies to every RPL match. A team cannot pick a hero it has already used earlier in the same series. It may pick heroes the opponent used. In a best of seven, game seven returns to a normal draft. This makes series-level questions ("what do they save for game three") more valuable than single-game questions.</li>
+    <li><strong>Side selection.</strong> The administrative home team chooses the side in game one. After that, the loser of the previous game chooses. The record must store who chose the side, not only who was blue.</li>
+    <li><strong>Swap phase.</strong> After the last pick, teammates may trade heroes. The hero shown under a player name on the draft bar before the swap is often not the hero that player ends up playing. Two frames of the same draft on the FS versus SLX VOD showed different assignments, which confirms this.</li>
+    <li><strong>Patches.</strong> The Thai server is patched every two to four weeks, so two to four patches fall inside one season. Every game must carry its patch, otherwise pooling across a season mixes different metas.</li>
+    <li><strong>Heroes.</strong> About 128 to 130 heroes exist. Flowborn has five forms that are banned separately but count as one hero when picked, so the hero list needs a form field.</li>
+    <li><strong>Liquipedia gap.</strong> Liquipedia records five picks per team in lane order and four bans, but not the interleaved pick order. Pick order is exactly what response-pick statistics need. Reading the broadcast is the only way to get it, which is the unique value of this project.</li>
+  </ul>
+
+  <h2>3. Legal position of the data</h2>
+  <p>The original worry was that using Liquipedia or similar sites would be illegal. The research found the position is softer than that.</p>
+  <ul>
+    <li>Liquipedia text is licensed CC-BY-SA 3.0. Using its tables with attribution is permitted. Its API has strict rate limits: one page-parse call every 30 seconds and a User-Agent with contact details. A research agent broke this limit on 24 September 2026 and this machine's IP was temporarily blocked, so any future use must respect the limits.</li>
+    <li>Facts are not copyrightable. Thai Copyright Act B.E. 2537 section 7 excludes facts having the character of mere information. The US cases Feist and NBA v. Motorola reach the same result for game data extracted from broadcasts. Extracting who picked what from a screenshot is therefore not the problem.</li>
+    <li>The real risks are redistributing the screenshots themselves and the hero icons, which belong to Garena and Tencent, and the terms of the platform the video came from. The design answer is that images stay on the user's PC and only extracted facts go to the cloud.</li>
+  </ul>
+
+  <h2>4. The two programs</h2>
+  <p>The work is split into a local extractor and a cloud dashboard. The reason is not cloud compute, which was never the bottleneck. The reasons are that Python and OpenCV never have to run on a serverless host, and the screenshots never leave the PC, which removes both the storage problem and the copyright question.</p>
+
+  <h3>4.1 Extractor (local, Python)</h3>
+  <ul>
+    <li>Input per game: the pre-swap draft bar screenshot and the post-game stats screenshot, plus three values typed once per series because the images lack them: date, patch, and which team was the home team in game one.</li>
+    <li>A review form ordered by the pick sequence, so the user enters B1, R1, R2 and so on rather than reading slots. This is the step that produces correct pick order.</li>
+    <li>Validation before save: four bans and five picks per side, no hero twice in a game, no hero repeated by the same team within a series except in game seven.</li>
+    <li>Output per game: one JSON file on disk, then a mutation that writes the same record to Convex. The JSON files are the backup and the source of truth; the Convex free plan has no daily backups, and the files allow rebuilding the database if the schema changes.</li>
+    <li>Later: recognition proposes values and the form only confirms them. The research recommends fixed slot crops, a DINOv2 or similar embedding nearest-neighbour lookup, and a pixel correlation check, with anything below a confidence threshold sent to the form. A vision language model is a fallback for text, not the main path. Every confirmed crop becomes a new reference image.</li>
+  </ul>
+
+  <h3>4.2 Dashboard (TanStack Start, Convex)</h3>
+  <ul>
+    <li>Read-only over confirmed data. No editing in the browser, so unverified guesses never reach the statistics and images never need uploading.</li>
+    <li>Statistics computed in Convex queries, or precomputed by the extractor at write time if query volume matters.</li>
+    <li>Focus team selector, defaulting to Full Sense, and a games-entered count next to every team-level number.</li>
+  </ul>
+
+  <h3>4.3 Keeping the halves in step</h3>
+  <ul>
+    <li>One shared schema. The extractor emits a JSON shape and a Convex validator mirrors it. Drift would make the dashboard silently show wrong numbers.</li>
+    <li>One canonical hero and team list, kept as a file in the repository that the extractor reads and a Convex table the dashboard seeds from.</li>
+  </ul>
+
+  <h2>5. Input images and what each one gives</h2>
+
+  <h3>5.1 Draft bar (pre-swap)</h3>
+  <p>The RPL broadcast keeps a bar along the bottom of the screen during the draft. It persists across camera cuts, which is why a single screenshot is enough.</p>
+  <ul>
+    <li>Caption line with team short names, stage, game number and series length, for example "REGULAR SEASON : FS VS BRU : GAME 1 [BO5]". The left team is blue side.</li>
+    <li>Four bans per side as grey icons, five picks per side as splash art, and the player name under each pick.</li>
+    <li>Working assumption to verify on a VOD: the five pick slots fill in that team's pick order. If true, the full 18-action sequence can be rebuilt from one frame, because the alternation between teams is fixed by the rules.</li>
+    <li>Missing: patch, date, and whether the ban slots are in ban order.</li>
+  </ul>
+
+  <h3>5.2 Post-game stats screen</h3>
+  <ul>
+    <li>Result for each team, series score after the game, game duration.</li>
+    <li>The final hero for each player. This is the post-swap mapping to store for player pools.</li>
+    <li>Per player: kills, deaths, assists, six items, damage dealt, damage taken.</li>
+    <li>Team totals: kills, gold, towers, dragons, slayers.</li>
+    <li>Bans repeated at the top, which serves as a cross-check against the draft bar.</li>
+    <li>Items are hard to read reliably from a screenshot and are optional in version one.</li>
+  </ul>
+
+  <h2>6. Data model</h2>
+  <p>The core is a table of draft actions, one row per ban or pick in sequence. Every statistic derives from it. The remaining tables give context.</p>
+<pre>tournament(id, name, season, dateStart, dateEnd)
+team(id, name, short)
+player(id, ign, teamId, lane)
+hero(id, name, forms[])              -- Flowborn forms
+series(id, tournamentId, stage, bestOf,
+       teamAId, teamBId, homeTeamId, date,
+       winnerTeamId, rules = 'global_bp')
+game(id, seriesId, gameNo, patch,
+     blueTeamId, redTeamId,
+     sideChooserTeamId, firstPickTeamId,
+     winnerTeamId, durationS,
+     tournamentId)                     -- denormalised
+draftAction(gameId, seq 1..18, phase,
+     teamId, side, action ban|pick,
+     heroId, form?, playerId?, lane?,
+     tournamentId)                     -- denormalised
+playerGameStat(gameId, playerId, teamId,
+     heroId, kills, deaths, assists,
+     dmgDealt, dmgTaken, items[]?)
+teamGameStat(gameId, teamId, kills, gold,
+     towers, dragons, slayers)</pre>
+  <ul>
+    <li><code>seq</code> on draft actions makes response picks, pick windows, first-phase pairs and last-pick analysis possible.</li>
+    <li><code>gameNo</code> and <code>sideChooserTeamId</code> together with the series result make series analysis possible, including what a team does in the game after a loss.</li>
+    <li><code>playerId</code> and <code>lane</code> on picks come from the post-game screen, not the pre-swap draft bar.</li>
+    <li>Global Ban-Pick locks are derived, not stored: the heroes a team used in earlier games of the same series.</li>
+    <li>Tournament and team ids are copied onto draft actions so statistics queries hit one table with one index, which matters in Convex where there are no joins.</li>
+  </ul>
+
+  <h2>7. Draft sequence and validation rules</h2>
+  <p>The sequence below comes from Garena Vietnam's league rules and a Thai RPL broadcast overlay tool. No official RPL rulebook stating it was found, so confirm it against one VOD before hard-coding.</p>
+  <table>
+    <tr><th>Seq</th><th>Phase</th><th>Side</th><th>Action</th></tr>
+    <tr><td>1 to 4</td><td>Ban 1</td><td>B, R, B, R</td><td>one ban each</td></tr>
+    <tr><td>5</td><td>Pick 1</td><td>Blue</td><td>B1</td></tr>
+    <tr><td>6, 7</td><td>Pick 1</td><td>Red</td><td>R1, R2</td></tr>
+    <tr><td>8, 9</td><td>Pick 1</td><td>Blue</td><td>B2, B3</td></tr>
+    <tr><td>10</td><td>Pick 1</td><td>Red</td><td>R3</td></tr>
+    <tr><td>11 to 14</td><td>Ban 2</td><td>R, B, R, B</td><td>one ban each</td></tr>
+    <tr><td>15</td><td>Pick 2</td><td>Red</td><td>R4</td></tr>
+    <tr><td>16, 17</td><td>Pick 2</td><td>Blue</td><td>B4, B5</td></tr>
+    <tr><td>18</td><td>Pick 2</td><td>Red</td><td>R5</td></tr>
+  </table>
+  <p>Validation rules applied before a game can be saved:</p>
+  <ul>
+    <li class="task">☐ Exactly four bans and five picks per side, 18 actions in total.</li>
+    <li class="task">☐ No hero appears twice in one game, counting bans and picks together.</li>
+    <li class="task">☐ No team picks a hero it picked in an earlier game of the same series, unless the game is game seven.</li>
+    <li class="task">☐ Every pick has a player and the five players of a team are distinct.</li>
+    <li class="task">☐ The bans on the post-game screen match the bans on the draft bar.</li>
+    <li class="task">☐ Patch and date are set, and the date lies inside the tournament.</li>
+  </ul>
+
+  <h2>8. Statistics for the dashboard</h2>
+  <p>With 50 to 80 games for the focus team, many cells will hold one to three games. Every number is shown with its count. Conditional statistics are shown as counts, and are ranked only when the count is at least three. No percentages are shown under a count of three.</p>
+
+  <h3>8.1 Version one</h3>
+  <ul>
+    <li><strong>Draft priority.</strong> What the team takes with first pick on blue, what it takes with the R1 and R2 pair on red, and what it leaves for last pick.</li>
+    <li><strong>Bans.</strong> What the team bans, split by ban phase, and what opponents ban against it, attributed to the player the ban targets.</li>
+    <li><strong>Response picks.</strong> After an opponent hero appears, what the team picks in its next pick turn. The window is the team's next turn, not the rest of the draft.</li>
+    <li><strong>Player pools.</strong> Heroes per player with games, wins and last played date, plus the heroes still available later in a series under Global Ban-Pick.</li>
+    <li><strong>Series view.</strong> Game by game: side, who chose it, picks, bans and result. This is the page a coach reads before a match.</li>
+    <li><strong>Game table.</strong> Results and team totals per game, so drafts can be linked to what happened.</li>
+    <li><strong>Presence.</strong> Picks plus bans over games for each hero, filterable by patch and opponent.</li>
+  </ul>
+
+  <h3>8.2 Later</h3>
+  <ul>
+    <li>Lane pick-order priority, the average pick slot per lane.</li>
+    <li>Flex picks: the same hero played in more than one lane by the team.</li>
+    <li>Side preference when the team has the choice, and win rate by side.</li>
+    <li>Win rates with Wilson intervals or shrinkage toward the league rate.</li>
+    <li>Draft prediction from frequencies or association rules, only once several seasons exist.</li>
+    <li>Items, damage-based statistics.</li>
+  </ul>
+
+  <h2>9. Storage and hosting</h2>
+  <p>Convex is the database. It fits the user's stack preference and the data volume, and the free plan covers the project.</p>
+  <table>
+    <tr><th>Convex free limit</th><th>This project, one season</th></tr>
+    <tr><td>Database storage 0.5 GB</td><td>About 15,000 small rows, a few MB</td></tr>
+    <tr><td>Function calls 1M per month</td><td>A few thousand</td></tr>
+    <tr><td>Database I/O 1 GB per month</td><td>A full-season scan is about 3 MB; precompute aggregates if the dashboard reruns many queries</td></tr>
+    <tr><td>Per-query scan 32,000 documents</td><td>One season fits; filter by tournament for several seasons</td></tr>
+    <tr><td>File storage 1 GB</td><td>Not used; images stay local</td></tr>
+  </table>
+  <p>Consequences of the free plan: one developer, no daily backups, and writes fail rather than bill when a limit is exceeded. The JSON files written by the extractor are the backup.</p>
+  <p>Hosting is a preference because TanStack Start's server adapter hides the platform. Pick one host, not all three. Cloudflare has the most generous free tier and pairs with R2 storage if images ever need to be hosted. Vercel has the least setup and the smoothest previews, and its free plan is non-commercial only. Netlify offers nothing extra here. Since data entry and statistics live in Convex, the host only serves the frontend and the choice is cheap to reverse.</p>
+
+  <h2>10. Build order</h2>
+  <ol>
+    <li class="task">☐ Confirm on one VOD that draft-bar pick slots fill in pick order, and that the ban slots fill in ban order.</li>
+    <li class="task">☐ Write the shared schema: JSON shape, Convex validators, canonical hero and team list.</li>
+    <li class="task">☐ Build the extractor's manual entry form with the validation rules, writing JSON to disk and to Convex.</li>
+    <li class="task">☐ Enter the Full Sense games played so far in RPL 2026 Winter.</li>
+    <li class="task">☐ Build the dashboard pages in section 8.1, with the games-entered count on every team number.</li>
+    <li class="task">☐ Deploy the dashboard to the chosen host.</li>
+    <li class="task">☐ After 20 to 30 confirmed games, add image recognition to prefill the form, tuned against those games.</li>
+    <li class="task">☐ Widen to a second team.</li>
+  </ol>
+
+  <h2>11. Open questions</h2>
+  <ul>
+    <li class="task">☐ Does the pre-swap draft bar really show picks in pick order? If not, the form must take the order from the user.</li>
+    <li class="task">☐ Should opponent player names and post-swap heroes be required from day one? Recommended yes, because they become the opponent's player pools later.</li>
+    <li class="task">☐ Which host: Cloudflare or Vercel.</li>
+    <li class="task">☐ Where the patch comes from for each game: the date mapped against a patch table kept in the repository, or typed per series.</li>
+    <li class="task">☐ Whether to also enter playoff series, which are best of seven and add the game-seven exception to the validation.</li>
+  </ul>
+</body>
+</html>

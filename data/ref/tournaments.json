@@ -1,0 +1,14 @@
+{
+  "tournaments": [
+    {
+      "id": "rpl-2026-winter",
+      "name": "RPL 2026 Winter",
+      "layout": "rpl2026"
+    },
+    {
+      "id": "rpl-2026-summer",
+      "name": "RPL 2026 Summer",
+      "layout": "rpl2026"
+    }
+  ]
+}

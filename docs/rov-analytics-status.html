@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RoV Analytics: Where the Project Stands</title>
+<style>
+  /* reMarkable 2 screen: 1872x1404 @ 226 DPI = 157mm x 210mm portrait.
+     Page matches the screen 1:1 so no zooming is ever needed.
+     Left margin is 15mm (~133px) so the device's toolbar sidebar
+     (~120px wide, left edge for right-handed users) never covers text. */
+  @page {
+    size: 157mm 210mm;
+    margin: 11mm 11mm 13mm 15mm;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    color: #000;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12.5pt;
+    line-height: 1.55;
+  }
+
+  h1 {
+    font-size: 21pt;
+    line-height: 1.2;
+    margin: 0 0 2mm 0;
+  }
+  .doc-date {
+    font-size: 10pt;
+    color: #333;
+    margin: 0 0 8mm 0;
+    padding-bottom: 3mm;
+    border-bottom: 1.5pt solid #000;
+  }
+  h2 {
+    font-size: 15.5pt;
+    line-height: 1.25;
+    margin: 9mm 0 2.5mm 0;
+    padding-bottom: 1mm;
+    border-bottom: 0.75pt solid #000;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 13pt;
+    margin: 6mm 0 1.5mm 0;
+    page-break-after: avoid;
+  }
+
+  p { margin: 0 0 3mm 0; }
+
+  ul, ol { margin: 0 0 3mm 0; padding-left: 7mm; }
+  li { margin-bottom: 1.2mm; }
+  li > ul, li > ol { margin-top: 1.2mm; margin-bottom: 0; }
+
+  /* E-ink: no light-gray backgrounds (they dither into noise).
+     Structure via borders and weight instead. */
+  pre {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 9.5pt;
+    line-height: 1.4;
+    border: 0.75pt solid #000;
+    padding: 2.5mm 3mm;
+    margin: 0 0 3.5mm 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    page-break-inside: avoid;
+  }
+  code {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.85em;
+  }
+
+  blockquote {
+    margin: 0 0 3mm 0;
+    padding: 0.5mm 0 0.5mm 4mm;
+    border-left: 2pt solid #000;
+    font-style: italic;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0 0 4mm 0;
+    font-size: 10.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 0.75pt solid #000;
+    padding: 1.5mm 2.5mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { font-weight: bold; border-bottom-width: 1.5pt; }
+
+  img {
+    max-width: 100%;
+    filter: grayscale(100%) contrast(1.1);
+  }
+
+  a { color: #000; text-decoration: underline; }
+
+  hr {
+    border: none;
+    border-top: 0.75pt solid #000;
+    margin: 6mm 0;
+  }
+
+  strong { font-weight: bold; }
+
+  /* Checklist items the user can tick with the pen */
+  li.task { list-style: none; margin-left: -7mm; padding-left: 7mm; }
+
+  .toc { margin-bottom: 8mm; }
+  .toc ul { list-style: none; padding-left: 4mm; }
+</style>
+</head>
+<body>
+  <h1>RoV Analytics: Where the Project Stands</h1>
+  <p class="doc-date">26 September 2026</p>
+  
+<h2>One paragraph</h2>
+<p>You are building a tool that turns screenshots of the RPL broadcast draft screen into
+team draft statistics for Arena of Valor (RoV). It has two halves. The first half, the
+<strong>extractor</strong>, is finished and running: a local Python web app on your PC where you attach
+screenshots, confirm the recognised draft, and save each game. Everything saved goes to your
+own Convex server on the NAS. The second half, the <strong>dashboard</strong>, is not started. It will read
+from that same Convex server and show the statistics: first picks, most banned heroes,
+response picks, side behaviour.</p>
+
+<h2>Where you are on the map</h2>
+<table>
+<tr><th>Piece</th><th>State</th></tr>
+<tr><td>Data model (series, games, draft actions)</td><td>Done</td></tr>
+<tr><td>Extractor web app</td><td>Done, redesigned, phone layout, LAN access</td></tr>
+<tr><td>Image recognition of the draft bar</td><td>Working, improves as you confirm games</td></tr>
+<tr><td>Hero reference table with art</td><td>Done, 131 heroes, 3 without art</td></tr>
+<tr><td>Convex backend (self-hosted on NAS)</td><td>Done: games, draft actions, images, heroes</td></tr>
+<tr><td>Real match data entered</td><td>Almost none: one series drafted, zero games saved</td></tr>
+<tr><td>Dashboard</td><td>Not started</td></tr>
+<tr><td>Git commit of all of this</td><td>Not done. Everything is uncommitted</td></tr>
+</table>
+
+<h2>What to do next, in order</h2>
+<ol>
+<li>Commit the work to git. It is a week of changes sitting uncommitted.</li>
+<li>Enter real games. Confirm and save game 1 of FS vs BRU, then keep going. The
+dashboard is pointless without data, and recognition gets better with every saved game.</li>
+<li>Decide the dashboard shape (questions in the last section), then build it.</li>
+</ol>
+
+<div class="toc"><strong>Contents</strong><ul>
+<li>Why this exists</li><li>The two programs</li><li>How the pieces connect</li>
+<li>What was built this week</li><li>Current data</li><li>Next steps</li><li>Decisions that need you</li>
+</ul></div>
+
+<h2>Why this exists</h2>
+<p>The goal is draft statistics for your team, Full Sense (FS), in the Thai pro league RPL.
+The questions you want answered are things like: what does FS first pick, what gets banned
+against them, when the opponent picks hero X what does FS answer with, and how does side
+choice (blue or red) change behaviour across a series.</p>
+<p>Public sites such as Liquipedia list picks and bans per game but not the interleaved
+order of the draft, and scraping them felt legally risky. So the source of truth is the
+broadcast itself: you take a screenshot of the draft bar at the end of the draft, and a
+second one of the post-game screen, and the tool reads them.</p>
+<p>The project started in mid September 2026 as a minimap position tracker. On 24 September
+you decided to throw that away and restart around the draft. The old tracker only exists in
+git history now.</p>
+
+<h3>Facts the design rests on</h3>
+<ul>
+<li>RPL 2025-26: eight teams, double round robin, best of five. Playoffs best of seven.</li>
+<li>Global Ban-Pick rule: a team cannot pick a hero it already used earlier in the same
+series. Game 7 of a Bo7 resets this.</li>
+<li>The loser of the previous game picks side.</li>
+<li>The draft is 18 steps: 8 bans and 10 picks, alternating between sides in a fixed
+pattern that the tool knows for the RPL 2026 broadcast layout.</li>
+<li>The broadcast swaps hero-to-player mapping during the swap phase, so the final
+post-swap frame is the one to use for who played what.</li>
+<li>Flowborn is treated as separate heroes per form (Flowborn Carry, Flowborn Mage),
+decided 26 September. No combining.</li>
+</ul>
+
+<h2>The two programs</h2>
+<h3>1. The extractor (built)</h3>
+<p>A Python program that runs on your PC. It serves a small web app in your browser. You
+open it by double-clicking <code>RoV Extractor.cmd</code> in the repo root. That launcher
+installs dependencies if needed, starts the server with auto-reload and LAN access, and
+opens the browser.</p>
+<p>Inside the app there are four numbered stages for each game:</p>
+<ol>
+<li>Pick or create a series (date, teams, best of, patch).</li>
+<li>Attach the draft screenshot and the post-game screenshot. They are copied locally and
+also uploaded to Convex file storage, so they no longer need to live on the PC.</li>
+<li>Recognise. The tool proposes all 18 draft actions, player names, K/D/A and the
+winner. Confident matches are marked, guesses are flagged. You fix anything wrong with
+dropdowns that show hero art.</li>
+<li>Check and save. The checks column validates duplicates, Global Ban-Pick, and
+missing fields. Save writes the game locally and pushes it to Convex.</li>
+</ol>
+<p>There is also a <strong>Heroes page</strong> (the <code>/heroes</code> route). It is the reference
+table of all 131 heroes with their ban icon and pick art. You verify each pairing and mark
+it Checked, by clicking the tick or by double-clicking (double-tapping on the phone)
+anywhere on the row. Saving the page syncs the hero list and art to Convex.</p>
+<p>The app works on your phone over the home WiFi. The launcher prints the LAN address.
+There is no login, so it is for the home network only.</p>
+
+<h3>2. The dashboard (not built)</h3>
+<p>A web app that reads the data from Convex and shows the statistics. The agreed stack is
+TanStack Start (React) with Tailwind, living in a <code>web/</code> folder in this same
+repository, deployed to Vercel or Cloudflare with the root directory set to
+<code>web</code>. It talks to Convex directly; Python is not involved.</p>
+<p>Nothing exists for it yet except the Convex tables it will read and a static mock-up
+at <code>docs/mockup/index.html</code>.</p>
+
+<h2>How the pieces connect</h2>
+<p>Read this top to bottom. Each arrow is one hop.</p>
+<pre>Screenshot on your PC or phone
+   |
+   v
+Extractor web app (Python FastAPI, port 8787)
+   |  OpenCV + RapidOCR read the draft bar
+   |  You confirm the 18 actions
+   v
+Local files: data/series/&lt;date&gt;_&lt;A&gt;-&lt;B&gt;/gN.json
+   |
+   v  "Save"  or  rov-extract push
+Convex on the NAS (http://suwinas.local:3810)
+   tables: series, games, draftActions, heroes, images
+   |
+   v  (future)
+Dashboard (TanStack Start) reads Convex, shows stats</pre>
+
+<h3>Why Python and TypeScript together</h3>
+<p>Python does the image work because OpenCV and RapidOCR are Python libraries. Convex
+functions must be written in TypeScript, so the <code>convex/</code> folder holds the
+schema and mutations. Python calls those functions by name over HTTP using the Convex
+Python client. The dashboard will be TypeScript because Convex has first-class React
+bindings. Each language does the thing it is best at and they meet at the Convex API.</p>
+
+<h3>Where each thing lives</h3>
+<table>
+<tr><th>Path</th><th>What</th></tr>
+<tr><td><code>RoV Extractor.cmd</code></td><td>Double-click launcher</td></tr>
+<tr><td><code>src/rov_extractor/</code></td><td>Python app: app.py (routes), recognise.py (vision),
+push.py (Convex), refdata.py (heroes and art), validate.py, cli.py</td></tr>
+<tr><td><code>src/rov_extractor/static/</code></td><td>The web UI: index.html, app.js, style.css,
+and heroes.html/js/css</td></tr>
+<tr><td><code>convex/</code></td><td>TypeScript backend: schema.ts, games.ts, files.ts, heroes.ts</td></tr>
+<tr><td><code>data/ref/heroes.json</code></td><td>The 131 hero ids and names</td></tr>
+<tr><td><code>data/ref/art-map.json</code></td><td>Hero to art-file pairing, Checked flags, Convex storage ids</td></tr>
+<tr><td><code>data/ref/art/</code>, <code>data/ref/crops/</code></td><td>Seed art and learned crops (gitignored)</td></tr>
+<tr><td><code>data/series/</code></td><td>Saved games and drafts</td></tr>
+<tr><td><code>.env.local</code></td><td>Convex URL and admin key. Never commit, never share</td></tr>
+<tr><td><code>docs/</code></td><td>Spec PDF, mock-up, architecture explainer</td></tr>
+</table>
+
+<h3>Commands</h3>
+<pre>uv run rov-extract serve --open --lan --reload
+uv run rov-extract list
+uv run rov-extract validate
+uv run rov-extract push                 # all series
+uv run rov-extract push --heroes        # hero table and art
+uv run rov-extract purge-images         # delete local copies already in Convex
+bunx convex deploy --yes                # after editing convex/*.ts</pre>
+
+<h2>What was built this week</h2>
+<h3>24 September</h3>
+<ul>
+<li>Removed the minimap tracker. Agreed the draft data model: a series, its games, and one
+row per draft action (sequence, side, team, ban or pick, hero, player).</li>
+<li>Built the extractor: manual slot-by-slot entry that mirrors the broadcast bar,
+autosave drafts, series folder layout, validation.</li>
+<li>Added recognition: OCR for names, scores, timer, result; hero identity from art;
+mapping post-game portraits back to draft slots.</li>
+</ul>
+<h3>25 September</h3>
+<ul>
+<li>Heroes page: the reference table with ban icon, pick art, reassignment dropdowns,
+Checked flag, learned crops per hero.</li>
+<li>Full UI redesign after you said the first version looked like design slop. Near-black
+surface, one type family, three-column layout, numbered stages, hero art everywhere,
+deep links per game.</li>
+<li>Convex self-hosted on the NAS connected. Backend written and deployed. Screenshots
+upload to Convex file storage on attach and can be restored if deleted locally.</li>
+<li>LAN mode so the phone can open the app. Phone layouts for both pages.</li>
+</ul>
+<h3>26 September</h3>
+<ul>
+<li>Architecture explainer written and published to Postplan.</li>
+<li>Double-click or double-tap anywhere on a hero row toggles Checked. This took several
+attempts. The real cause was an orphaned old server process holding port 8787 on
+127.0.0.1 while the launcher listened on 0.0.0.0, so your browser kept hitting stale
+code. Killed it. Lesson: if a change seems not to apply, check for a second server.</li>
+<li>Auto-reload for the Python server on any change under <code>src/</code>.</li>
+<li>Hero table and all hero art uploaded to Convex, so the dashboard can show hero
+pictures without touching the PC.</li>
+<li>Flowborn split into Flowborn Carry and Flowborn Mage as separate heroes. Forms
+column removed.</li>
+</ul>
+
+<h2>Current data</h2>
+<h3>Heroes</h3>
+<table>
+<tr><th>Item</th><th>Value</th></tr>
+<tr><td>Heroes in the table</td><td>131</td></tr>
+<tr><td>With both ban icon and pick art</td><td>128</td></tr>
+<tr><td>Missing art</td><td>Arthur, Brunhilda, Peura</td></tr>
+<tr><td>Synced to Convex</td><td>Yes, 131 rows, art in storage</td></tr>
+</table>
+<p>The Checked flags are yours to work through. Unchecked rows are the ones you have not
+verified yet. The Heroes page has an "unchecked only" checkbox to filter to them.</p>
+<h3>Games</h3>
+<p>One series exists: FS vs BRU on 20 September 2026, regular season, best of five, patch
+1.60.1. Game 1 has both screenshots attached and a recognition proposal, but it has not
+been confirmed and saved. No game is in Convex yet. That means there are no statistics to
+show at all so far.</p>
+<h3>Convex</h3>
+<p>Instance <code>convex_rov</code> on the NAS at port 3810. Tables: series, games,
+draftActions, heroes, images. You said you will migrate this to a public Convex deployment
+yourself when it is time to publish. The dashboard should therefore read the Convex URL
+from an environment variable so the switch is one line.</p>
+
+<h2>Next steps</h2>
+<p>Tick these off as you go.</p>
+<h3>Now</h3>
+<ul>
+<li class="task">&#9744; Commit everything to git. Nothing from this week is committed. Check that
+<code>.env.local</code> is ignored before committing.</li>
+<li class="task">&#9744; Confirm and save FS vs BRU game 1 in the extractor. Then game 2 and onward.</li>
+<li class="task">&#9744; Work through the Heroes page until every row is Checked. Do it on the phone if that
+is more comfortable, double-tap to toggle.</li>
+<li class="task">&#9744; Find art for Arthur, Brunhilda and Peura, or let the learned crops cover them once
+they appear in a saved game.</li>
+</ul>
+<h3>Soon</h3>
+<ul>
+<li class="task">&#9744; Enter five to ten more FS series. Recognition confidence should rise visibly as
+learned crops accumulate.</li>
+<li class="task">&#9744; Optional extractor improvement asked for but not built: a filter
+bar on the Heroes page (All, Unchecked, Checked, Missing art, with counts) instead of
+the single checkbox.</li>
+</ul>
+<h3>Then: the dashboard</h3>
+<ul>
+<li class="task">&#9744; Answer the questions in the next section.</li>
+<li class="task">&#9744; Scaffold <code>web/</code> with TanStack Start, Tailwind, and the Convex React client.</li>
+<li class="task">&#9744; First screens: series list, game detail with the 18-step draft, hero table with
+first-pick rate, ban rate, pick rate, win rate.</li>
+<li class="task">&#9744; Response picks: given hero X picked by the opponent, what FS picked next.</li>
+<li class="task">&#9744; Side and series behaviour: blue vs red, game 1 vs later games.</li>
+</ul>
+<h3>Before publishing publicly</h3>
+<ul>
+<li class="task">&#9744; Decide about the hero art. It is Garena artwork taken from a community broadcast
+package. Fine at home, questionable on a public site. Options: keep it private, ask
+permission, or replace with your own icons.</li>
+<li class="task">&#9744; Migrate Convex from the NAS to a public deployment (your job, you said).</li>
+<li class="task">&#9744; Do not expose the extractor. It has no login. Only the dashboard goes public.</li>
+</ul>
+
+<h2>Decisions that need you</h2>
+<p>These cannot be guessed from the code. Answering them unblocks the dashboard.</p>
+<ol>
+<li><strong>Who is the dashboard for?</strong> Only you and the FS coaching staff, or public? This
+decides whether it needs a login and whether the art question matters.</li>
+<li><strong>Which statistics first?</strong> Suggested order: hero table (picks, bans, wins),
+first-pick and first-ban, response picks, side split. Tell me if something else is
+more urgent, for example an opponent scouting view.</li>
+<li><strong>Filters.</strong> By tournament and stage? By patch? By opponent? By date range? Pick
+the two or three that you will use every time.</li>
+<li><strong>Hosting.</strong> Vercel or Cloudflare? Both work with a subdirectory. Cloudflare is
+cheaper at scale, Vercel is simpler to set up.</li>
+<li><strong>Data entry pace.</strong> Will you enter all of the current season, or only from now
+on? This decides whether backfilling from VODs is worth automating.</li>
+<li><strong>Phone use of the extractor.</strong> Is attaching screenshots from the phone the main
+path, or a nice-to-have? If main, the upload flow deserves more polish.</li>
+</ol>
+<blockquote><strong>Shortest path to something useful:</strong> commit, save ten games, then build a single
+dashboard page with the hero table. Everything else can follow.</blockquote>
+
+</body>
+</html>

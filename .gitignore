@@ -1,7 +1,25 @@
 .venv/
 __pycache__/
 *.pyc
-data/
 *.egg-info/
 dist/
 build/
+.env
+.env.local
+data/videos/
+data/draft_probe/
+data/series/**/*.png
+data/series/**/*.jpg
+data/series/**/*.jpeg
+data/series/**/*.webp
+data/series/**/*.draft.json
+data/extractor.log
+data/ref/art/
+data/ref/crops/
+data/series/**/*.proposal.json
+node_modules/
+convex/_generated/
+data/series/**/*.bak
+# Broadcast frames and hero art stay local, like the screenshots under data/
+docs/mockup/*.png
+docs/dashboard-fs-leg1.png

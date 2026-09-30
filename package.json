@@ -1,0 +1,12 @@
+{
+  "name": "rov-analytics",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "convex:dev": "convex dev",
+    "convex:deploy": "convex deploy"
+  },
+  "dependencies": {
+    "convex": "^1.46.0"
+  }
+}

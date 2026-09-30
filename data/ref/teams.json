@@ -1,0 +1,41 @@
+{
+  "source": "vsgg.com RPL 2026 Winter announcement",
+  "teams": [
+    {
+      "id": "BRU",
+      "name": "Buriram United Esports"
+    },
+    {
+      "id": "FS",
+      "name": "Full Sense"
+    },
+    {
+      "id": "BAC",
+      "name": "Bacon Time"
+    },
+    {
+      "id": "KOG",
+      "name": "King of Gamers Club"
+    },
+    {
+      "id": "HD",
+      "name": "Hydra Esports"
+    },
+    {
+      "id": "EA",
+      "name": "eArena"
+    },
+    {
+      "id": "TEN",
+      "name": "Tenacity"
+    },
+    {
+      "id": "SLX",
+      "name": "SOLYX Esports"
+    },
+    {
+      "id": "GJC",
+      "name": "Godji Check"
+    }
+  ]
+}
