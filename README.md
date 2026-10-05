@@ -17,7 +17,7 @@ packages/
 data/            Screenshots, drafts, saved games and reference data of the extractor.
 docs/
 server/             up.sh starts everything on a Linux server, send.cmd brings the data there.
-docker-compose.yml  The dashboard and the extractor as two containers.
+docker-compose.yml  The same two parts as containers, for server/up-docker.sh.
 RoV Extractor.cmd   Starts the extractor on the PC.
 package.json        Bun workspace: apps/* and packages/*.
 .env.local          Convex address and key. Never committed.
@@ -54,12 +54,12 @@ bun run build            # production build of the web app
 
 ### Running on a Linux server
 
-The dashboard and the extractor run as two Docker containers that start again after a reboot. The server needs git and Docker with the compose plugin, nothing else. Convex stays where it is.
+The dashboard and the extractor run as two services of your own user, `rov-web` and `rov-extractor`, that start again after a crash and after a reboot. No Docker and no sudo. The server needs git, curl and systemd; `up.sh` installs uv and Bun into your home folder when they are missing. Convex stays where it is.
 
 1. On the server: `git clone -b monorepo https://github.com/suwichacle22/rov_analytics.git`
 2. On the PC, in the project folder: `server\send.cmd user@server`
 
-`send.cmd` copies what git does not carry, which is `.env.local`, the screenshots and unsaved drafts in `data/series`, and the hero art in `data/ref/art` and `data/ref/crops`. The hero art and crops do not depend on it: an extractor that lacks them fetches them from Convex when it starts, so `.env.local` alone is enough for the heroes. Then it runs `server/up.sh` on the server, which builds and starts both containers and prints the two addresses. The repo is expected in `~/rov_analytics`; give another folder as the second argument.
+`send.cmd` copies what git does not carry, which is `.env.local`, the screenshots and unsaved drafts in `data/series`, and the hero art in `data/ref/art` and `data/ref/crops`. The hero art and crops do not depend on it: an extractor that lacks them fetches them from Convex when it starts, so `.env.local` alone is enough for the heroes. Then it runs `server/up.sh` on the server, which installs the packages, builds the dashboard, writes and starts both services and prints the two addresses. The repo is expected in `~/rov_analytics`; give another folder as the second argument.
 
 | | Port | Change it in `.env` on the server |
 |---|---|---|
@@ -68,9 +68,9 @@ The dashboard and the extractor run as two Docker containers that start again af
 
 - **Updating.** On the server, `git pull` and `./server/up.sh`.
 - **One copy of the data.** After the move the server holds the data. `send.cmd` refuses to run a second time, because it would put the PC's files over the server's; `server\send.cmd user@server again` does it anyway.
-- **The Convex address.** The dashboard is built with the address from `.env.local`, and every browser that opens it talks to Convex directly, so the address has to work from the browsers too. A container cannot look up a `.local` name, so `up.sh` looks it up on the server and passes the result to the containers. If the server cannot find the name either, write the IP address into `.env.local`.
+- **The Convex address.** The dashboard is built with the address from `.env.local`, and every browser that opens it talks to Convex directly, so the address has to work from the browsers too. If the server cannot find the name in the address, `up.sh` says so; write the IP address into `.env.local` then.
 - **The Convex functions** are not deployed from the server. `bun run backend:deploy` on the PC does that, as before.
-- **Looking inside.** `docker compose ps` and `docker compose logs -f extractor` in the repo folder.
+- **Looking inside.** `systemctl --user status rov-extractor rov-web`, and `journalctl --user -u rov-extractor -f` for the log. `systemctl --user disable --now rov-extractor rov-web` stops both for good.
 - The extractor has no login. Keep port 8787 inside your network.
 
 ## Dashboard (apps/web)
