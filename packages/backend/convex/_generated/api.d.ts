@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as extractor from "../extractor.js";
 import type * as files from "../files.js";
 import type * as games from "../games.js";
 import type * as heroes from "../heroes.js";
@@ -24,6 +25,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  extractor: typeof extractor;
   files: typeof files;
   games: typeof games;
   heroes: typeof heroes;

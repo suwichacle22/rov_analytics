@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { DraftAction } from "./lib/teamStats";
+import { dropFolder } from "./extractor";
 
 /** Upsert a series and one game, replacing that game's draft actions. Called by `rov-extract push`.
  *  The same game id is used for the unchecked draft and the saved game, so saving replaces the draft. */
@@ -183,6 +184,8 @@ export const removeSeries = mutation({
     const images = await dropImages(ctx, seriesId);
     const series = await ctx.db.query("series").withIndex("by_seriesId", (q) => q.eq("seriesId", seriesId)).unique();
     if (series) await ctx.db.delete(series._id);
-    return { removed: !!series, games: games.length, actions, images };
+    // The extractor's own files of the match go too, so no other machine brings the match back.
+    const files = await dropFolder(ctx, seriesId);
+    return { removed: !!series, games: games.length, actions, images, files };
   },
 });

@@ -57,9 +57,10 @@ bun run build            # production build of the web app
 The dashboard and the extractor run as two services of your own user, `rov-web` and `rov-extractor`, that start again after a crash and after a reboot. No Docker and no sudo. The server needs git, curl and systemd; `up.sh` installs uv and Bun into your home folder when they are missing. Convex stays where it is.
 
 1. On the server: `git clone -b monorepo https://github.com/suwichacle22/rov_analytics.git`
-2. On the PC, in the project folder: `server\send.cmd user@server`
+2. Copy `.env.local` from the PC into the repo folder on the server. It holds the Convex address and key, and git does not carry it.
+3. On the server: `./server/up.sh`
 
-`send.cmd` copies what git does not carry, which is `.env.local`, the screenshots and unsaved drafts in `data/series`, and the hero art in `data/ref/art` and `data/ref/crops`. The hero art and crops do not depend on it: an extractor that lacks them fetches them from Convex when it starts, so `.env.local` alone is enough for the heroes. Then it runs `server/up.sh` on the server, which installs the packages, builds the dashboard, writes and starts both services and prints the two addresses. The repo is expected in `~/rov_analytics`; give another folder as the second argument.
+`up.sh` installs the packages, builds the dashboard, writes and starts both services and prints the two addresses. Nothing else has to be carried over: when the extractor starts it fetches the matches, games, rosters, hero art and crops from Convex, and a screenshot when a game needs it. `server\send.cmd user@server` on the PC is a shortcut for steps 2 and 3 that also copies the screenshots, so they need not be fetched one by one. It expects the repo in `~/rov_analytics`; give another folder as the second argument.
 
 | | Port | Change it in `.env` on the server |
 |---|---|---|
@@ -67,7 +68,7 @@ The dashboard and the extractor run as two services of your own user, `rov-web` 
 | Extractor | 8787 | `EXTRACTOR_PORT=...` |
 
 - **Updating.** On the server, `git pull` and `./server/up.sh`.
-- **One copy of the data.** After the move the server holds the data. `send.cmd` refuses to run a second time, because it would put the PC's files over the server's; `server\send.cmd user@server again` does it anyway.
+- **The data lives in Convex.** The PC and the server each keep a copy of the matches and games, and both stay in step with Convex while the extractor runs, see Convex below. An edit on one machine shows on the other after a reload. `send.cmd` refuses to run a second time, because it would put the PC's files over the server's; `server\send.cmd user@server again` does it anyway.
 - **The Convex address.** The dashboard is built with the address from `.env.local`, and every browser that opens it talks to Convex directly, so the address has to work from the browsers too. If the server cannot find the name in the address, `up.sh` says so; write the IP address into `.env.local` then.
 - **The Convex functions** are not deployed from the server. `bun run backend:deploy` on the PC does that, as before.
 - **Looking inside.** `systemctl --user status rov-extractor rov-web`, and `journalctl --user -u rov-extractor -f` for the log. `systemctl --user disable --now rov-extractor rov-web` stops both for good.
@@ -271,6 +272,7 @@ python -m uv run rov-extract import [--grab]      # create the matches named in 
 python -m uv run rov-extract validate [match]     # re-run the checks on saved games
 python -m uv run rov-extract push [match] [--game N] [--drafts] [--heroes]
 python -m uv run rov-extract pull                 # fetch hero art and crops from Convex that this machine lacks
+python -m uv run rov-extract sync                 # bring matches and games here and in Convex in step
 python -m uv run rov-extract purge-images [match] [--dry-run]   # drop local screenshots already in Convex
 ```
 
@@ -282,9 +284,11 @@ The extractor reads the Convex address and key from `.env.local` in the repo roo
 
 The heroes live in Convex too: the list, the ban icon and pick art paired with each hero, and every learned crop. Saving the Heroes page, setting art, adding or deleting a crop and saving a game all send the change. In the other direction, the extractor fetches on every start the art files and crops that Convex holds and this machine lacks, and adds heroes missing from `heroes.json`; `rov-extract pull` does the same by hand. That is how a fresh clone gets its heroes, since git carries neither folder. Nothing on disk is replaced, and a file missing on this machine never deletes the stored one.
 
+The matches and games live in Convex in the same way (`sync.py`). Per match that is `series.json`, and per game the form (`g1.draft.json`), the Recognise reading that drives the "To check" list (`g1.proposal.json`) and the saved game (`g1.json`); plus the rosters in `data/ref/players.json`. None of these is in git. One pass compares each file on disk with the copy in Convex and with what both held after the last pass (`data/.sync.json`): a file changed here goes up, a file changed there comes down, and when both changed the newer one wins and the local loser is kept as `<name>.bak`. A pass runs when the extractor starts, a moment after every change made in the app, and when the match list is opened after 20 seconds of quiet; `rov-extract sync` runs one by hand, for example after `grab` or `import` on the command line. Deleting a game here deletes it in Convex. A whole match is only removed by its Delete button; a match folder that is merely missing on a machine is fetched again. Without Convex in `.env.local` nothing is compared and the files stay local.
+
 ### Reference data
 
-`data/ref/heroes.json` (hero ids and names; Flowborn forms are separate heroes), `teams.json` (RPL 2026 Winter), `players.json` (rosters, grows automatically as you save games), `tournaments.json`, `layouts/`. Edit these by hand when a hero or team is added.
+`data/ref/heroes.json` (hero ids and names; Flowborn forms are separate heroes), `teams.json` (RPL 2026 Winter), `players.json` (rosters, grows automatically as you save games; kept in Convex, not in git), `tournaments.json`, `layouts/`. Edit these by hand when a hero or team is added.
 
 ### Game JSON
 

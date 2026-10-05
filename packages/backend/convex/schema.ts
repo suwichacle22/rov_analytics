@@ -104,4 +104,23 @@ export default defineSchema({
     size: v.optional(v.number()),
     contentType: v.optional(v.string()),
   }).index("by_game", ["seriesId", "gameNo", "kind"]),
+
+  // The working files of the extractor, so every machine that runs it holds the same matches:
+  // series.json, the form of each game (g1.draft.json), its Recognise reading (g1.proposal.json)
+  // and the saved game (g1.json). `folder` is the match id, or "_ref" for reference lists.
+  // The row is small on purpose: the extractor lists all of them to see what changed. The text
+  // of a file is in extractorBodies.
+  extractorFiles: defineTable({
+    folder: v.string(),
+    name: v.string(),
+    hash: v.string(),
+    size: v.number(),
+    updatedAt: v.number(), // when the file was last written on the machine that sent it, in ms
+  }).index("by_file", ["folder", "name"]),
+
+  extractorBodies: defineTable({
+    folder: v.string(),
+    name: v.string(),
+    content: v.string(), // the JSON text
+  }).index("by_file", ["folder", "name"]),
 });

@@ -19,6 +19,10 @@ data/ref/crops/
 data/series/**/*.proposal.json
 node_modules/
 data/series/**/*.bak
+# Matches, games and team rosters live in Convex (rov_extractor/sync.py), not in git.
+data/series/
+data/ref/players.json
+data/.sync.json
 # Broadcast frames and hero art stay local, like the screenshots under data/
 docs/mockup/*.png
 docs/dashboard-*.png

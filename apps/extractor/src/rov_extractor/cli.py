@@ -32,6 +32,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--drafts", action="store_true", help="also push games that are not saved yet, marked as unchecked")
 
     sub.add_parser("pull", help="Fetch hero art and learned crops from Convex that this machine lacks")
+    sub.add_parser("sync", help="Bring the matches and games here and in Convex in step, in both directions")
 
     ls = sub.add_parser("list", help="List matches and games on disk")
 
@@ -125,6 +126,16 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print(f"{r['heroes']} heroes added, {r['art']} art files and {r['crops']} crops fetched, {r['failed']} failed")
         return 1 if r["failed"] else 0
+    if args.cmd == "sync":
+        from . import sync
+
+        r = sync.run()
+        if not r["ok"]:
+            print(f"FAILED {r['error']}")
+            return 1
+        print(f"{r['pulled']} files fetched ({r['kept']} local versions kept as .bak), {r['pushed']} sent, "
+              f"{r['removedHere']} removed here, {r['removedThere']} removed in Convex")
+        return 0
     if args.cmd == "list":
         for s in store.list_series():
             print(f"{s['seriesId']}  {s['teamA']} vs {s['teamB']}  Bo{s['bestOf']}  games {s['games']}  drafts {s['drafts']}")

@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 import json
 
-from . import recognise, refdata, review, source, store
+from . import recognise, refdata, review, source, store, sync
 from .models import GameInput, SeriesCreate
 from . import push as cloud
 from .push import convex_url, push_game
@@ -35,6 +35,14 @@ def _warm() -> None:
                 print(f"Heroes not fetched from Convex: {r.get('error')}", flush=True)
             elif r["heroes"] or r["art"] or r["crops"] or r["failed"]:
                 print(f"Fetched from Convex: {r['heroes']} heroes, {r['art']} art files, {r['crops']} crops, {r['failed']} failed", flush=True)
+            # The matches and games live in Convex as well: fetch what is missing or newer there,
+            # send what is newer here, and keep doing so while the server runs.
+            r = sync.run()
+            if not r.get("ok"):
+                print(f"Matches not compared with Convex: {r.get('error')}", flush=True)
+            elif any(r[k] for k in ("pushed", "pulled", "removedHere", "removedThere")):
+                print(f"Matches and Convex: {r['pulled']} files fetched, {r['pushed']} sent, {r['removedHere']} removed here, {r['removedThere']} removed there", flush=True)
+            sync.start()
         recognise.warm_up()
 
     threading.Thread(target=run, daemon=True).start()
@@ -499,7 +507,7 @@ def game_push(series_id: str, game_no: int) -> dict[str, Any]:
 
 @app.get("/api/status")
 def status() -> dict[str, Any]:
-    return {"convexUrl": convex_url() or None, "seriesDir": str(store.series_dir()), "cloudImages": bool(convex_url())}
+    return {"convexUrl": convex_url() or None, "seriesDir": str(store.series_dir()), "cloudImages": bool(convex_url()), "sync": sync.status()}
 
 
 def _date_from_source(series) -> dict[str, Any]:
@@ -533,6 +541,13 @@ async def _no_stale_static(request, call_next):
     response = await call_next(request)
     if request.url.path.startswith("/static") or request.url.path in ("/", "/heroes", "/teams"):
         response.headers["Cache-Control"] = "no-cache"
+    # Anything that may have written a file is sent to Convex shortly after, and opening the match
+    # list looks for what another machine changed.
+    if request.url.path.startswith("/api/"):
+        if request.method not in ("GET", "HEAD", "OPTIONS"):
+            sync.request()
+        elif request.url.path == "/api/series":
+            sync.request_if_stale()
     return response
 
 

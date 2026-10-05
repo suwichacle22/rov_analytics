@@ -121,13 +121,21 @@ LANES = ["DSL", "JGL", "MID", "ADL", "SUP"]
 def roster() -> dict[str, list[dict[str, Any]]]:
     """The team master: per team, each player with the position they play. Files written before
     the master existed hold bare names."""
-    raw = _load("players.json")["players"]
+    raw = _players_file()["players"]
     return {team: [{"name": p, "lane": None} if isinstance(p, str) else {"name": p["name"], "lane": p.get("lane")} for p in items]
             for team, items in raw.items()}
 
 
+def _players_file() -> dict[str, Any]:
+    """players.json is not in git: it comes from Convex (sync.py). Until the first fetch on a new
+    machine there are no rosters."""
+    if not (ref_dir() / "players.json").exists():
+        return {"players": {}}
+    return _load("players.json")
+
+
 def save_roster(rosters: dict[str, list[dict[str, Any]]]) -> None:
-    payload = _load("players.json")
+    payload = _players_file()
     payload["players"] = {**roster(), **rosters}
     _save("players.json", payload)
 
