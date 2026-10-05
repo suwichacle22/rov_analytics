@@ -155,7 +155,45 @@
         "lane": null
       }
     ],
-    "EA": [],
-    "GJC": []
+    "EA": [
+      {
+        "name": "Jdai",
+        "lane": null
+      },
+      {
+        "name": "Nbank",
+        "lane": null
+      },
+      {
+        "name": "Negan",
+        "lane": null
+      }
+    ],
+    "GJC": [
+      {
+        "name": "Artte",
+        "lane": null
+      },
+      {
+        "name": "Fave",
+        "lane": null
+      },
+      {
+        "name": "Larming",
+        "lane": null
+      },
+      {
+        "name": "Larmino",
+        "lane": null
+      },
+      {
+        "name": "Ninz",
+        "lane": null
+      },
+      {
+        "name": "Rika",
+        "lane": null
+      }
+    ]
   }
 }

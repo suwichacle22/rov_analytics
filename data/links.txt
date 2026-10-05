@@ -1,0 +1,32 @@
+# Broadcast links, one per line. A playlist link stands for every video in it.
+# Every match in a video is found from its chapter titles, so nothing else is needed here.
+# A line "stage: leg1", "bestof: 5" or "tournament: rpl-2026-winter" applies to the links below it.
+# Run from apps/extractor:  python -m uv run rov-extract import --grab
+
+tournament: rpl-2026-winter
+
+# Leg 1: week 1 to week 4, 2026-08-22 to 2026-09-13
+stage: leg1
+https://www.youtube.com/watch?v=Xq19Mkao8DA   # Week 1 Day 1
+https://www.youtube.com/watch?v=EVju4se3pJE   # Week 1 Day 2
+https://www.youtube.com/watch?v=HR6VTKtcghs   # Week 2 Day 1
+https://www.youtube.com/watch?v=x6SRQxUc0WQ   # Week 2 Day 2
+https://www.youtube.com/watch?v=QEonYygWrRU   # Week 2 Day 3
+https://www.youtube.com/watch?v=-E3KHpSy5hQ   # Week 2 Day 4
+https://www.youtube.com/watch?v=S6hWuKlsj34   # Week 3 Day 1
+https://www.youtube.com/watch?v=zWdecsiAyjo   # Week 3 Day 2
+https://www.youtube.com/watch?v=1xz4xUzQLBw   # Week 3 Day 3
+https://www.youtube.com/watch?v=0UQST8dzsLA   # Week 3 Day 4
+https://www.youtube.com/watch?v=e1kn4ldvKXY   # Week 4 Day 1
+https://www.youtube.com/watch?v=FKKIZVNM_nU   # Week 4 Day 2
+https://www.youtube.com/watch?v=J4y4A9WCLAI   # Week 4 Day 3
+https://www.youtube.com/watch?v=HIQ5uKa-1_A   # Week 4 Day 4
+
+# Week 5 onwards, probably leg 2. Remove the # in front of the links once that is confirmed.
+# stage: leg2
+# https://www.youtube.com/watch?v=__L5tGJuGBs   # Week 5 Day 1
+# https://www.youtube.com/watch?v=Hbve6UAdNLw   # Week 5 Day 2
+# https://www.youtube.com/watch?v=PQ0xhyhVcTM   # Week 6 Day 1
+# https://www.youtube.com/watch?v=HvmF63aCAB0   # Week 6 Day 2
+# https://www.youtube.com/watch?v=yn3eC6wZXek   # Week 6 Day 3
+# https://www.youtube.com/watch?v=vleSXxe6LEY   # Week 6 Day 4

@@ -1,0 +1,16 @@
+{
+  "seriesId": "2026-08-22_KOG-BRU",
+  "tournament": "rpl-2026-winter",
+  "stage": "leg1",
+  "bestOf": 5,
+  "date": "2026-08-22",
+  "dateManual": false,
+  "patch": "",
+  "teamA": "KOG",
+  "teamB": "BRU",
+  "homeTeam": "KOG",
+  "vodUrl": "https://www.youtube.com/watch?v=Xq19Mkao8DA&t=1969s",
+  "layout": "rpl2026",
+  "notes": "",
+  "winner": null
+}

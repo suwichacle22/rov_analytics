@@ -1,0 +1,29 @@
+# The dashboard and the extractor on a Linux server. Both come back after a reboot.
+# Start them with server/up.sh: it writes the .env file that fills in the ${...} values.
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_CONVEX_URL: ${VITE_CONVEX_URL:-}
+    # A container cannot look up a .local name, so up.sh looks it up and hands the address over.
+    extra_hosts:
+      - "${CONVEX_HOST:-convex.invalid}:${CONVEX_IP:-127.0.0.1}"
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    restart: unless-stopped
+
+  extractor:
+    build: apps/extractor
+    # Runs as the owner of the repo folder, so the files it writes in data/ stay theirs.
+    user: "${ROV_UID:-1000}:${ROV_GID:-1000}"
+    extra_hosts:
+      - "${CONVEX_HOST:-convex.invalid}:${CONVEX_IP:-127.0.0.1}"
+    volumes:
+      - ./data:/repo/data
+      - ./.env.local:/repo/.env.local:ro
+    ports:
+      - "${EXTRACTOR_PORT:-8787}:8787"
+    restart: unless-stopped

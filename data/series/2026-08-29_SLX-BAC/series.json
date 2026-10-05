@@ -1,0 +1,16 @@
+{
+  "seriesId": "2026-08-29_SLX-BAC",
+  "tournament": "rpl-2026-winter",
+  "stage": "leg1",
+  "bestOf": 5,
+  "date": "2026-08-29",
+  "dateManual": false,
+  "patch": "",
+  "teamA": "SLX",
+  "teamB": "BAC",
+  "homeTeam": "SLX",
+  "vodUrl": "https://www.youtube.com/watch?v=QEonYygWrRU&t=13240s",
+  "layout": "rpl2026",
+  "notes": "",
+  "winner": null
+}

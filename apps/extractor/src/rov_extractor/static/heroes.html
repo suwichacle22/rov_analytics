@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heroes · RoV Draft Extractor</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/heroes.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-left"><a class="brand" href="/">RoV Draft Extractor</a><nav class="crumbs"><span class="sep">/</span><span>Heroes</span></nav></div>
+  <div class="top-right">
+    <span class="state" id="status-save"><i class="dot"></i><span>Idle</span></span>
+    <a class="link" href="/">Back to matches</a>
+  </div>
+</header>
+
+<main class="heroes-main">
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h3>Hero reference table</h3>
+        <div class="hint">Check that every hero shows the right icon and art. Change a wrong file in the dropdown, or set a new one with <b>Upload</b>, with <b>Paste</b> (or Ctrl+V while the pointer is over it), or by dropping an image on the icon or the art: any image is cut around the middle and resized to fit. Tick <b>Checked</b> when it is right, or double-click (double-tap on a phone) anywhere on the row. Broadcast crops teach the recogniser the skins it actually sees; add them by dropping a crop on a hero's row.</div>
+      </div>
+      <div class="actions">
+        <input id="filter" placeholder="Filter heroes…" style="width:200px">
+        <label class="inline"><input type="checkbox" id="only-unchecked"> unchecked only</label>
+        <button class="btn" id="btn-add">Add hero</button>
+        <button class="btn primary" id="btn-save">Save</button>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="table-wrap">
+      <table class="heroes" id="table">
+        <thead>
+          <tr>
+            <th>Ban icon</th>
+            <th>Pick art</th>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Crops (ban · pick)</th>
+            <th>Checked</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" id="unused-card">
+    <h3>Art files not assigned to any hero</h3>
+    <div class="hint">These files exist in <code>data/ref/art</code> but no hero uses them. Either the hero is missing from the list, or a hero above has the wrong file.</div>
+    <div class="unused" id="unused"></div>
+  </div>
+</main>
+
+<div id="toast" class="toast" hidden></div>
+<script src="/static/heroes.js"></script>
+</body>
+</html>

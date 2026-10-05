@@ -1,0 +1,16 @@
+{
+  "seriesId": "2026-09-04_BRU-TEN",
+  "tournament": "rpl-2026-winter",
+  "stage": "leg1",
+  "bestOf": 5,
+  "date": "2026-09-04",
+  "dateManual": false,
+  "patch": "",
+  "teamA": "BRU",
+  "teamB": "TEN",
+  "homeTeam": "BRU",
+  "vodUrl": "https://www.youtube.com/watch?v=zWdecsiAyjo&t=2678s",
+  "layout": "rpl2026",
+  "notes": "",
+  "winner": null
+}

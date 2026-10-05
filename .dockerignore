@@ -1,0 +1,17 @@
+.git
+**/node_modules
+**/.venv
+**/__pycache__
+**/.output
+**/dist
+**/.nitro
+**/.tanstack
+.env*
+**/.env*
+!**/.env.example
+*.log
+.vscode
+.idea
+# The dashboard reads everything from Convex; screenshots and hero art never go into an image.
+data
+docs

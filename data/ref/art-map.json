@@ -1303,6 +1303,19 @@
         "file": "Tachi.png:77243"
       }
     },
+    "tamyn": {
+      "ban": null,
+      "pick": null,
+      "checked": false,
+      "banStorage": {
+        "id": "kg26bepr9www8c7364vbxave4x8fd8e8",
+        "file": "crop/2026-08-22_TEN-FS_g3_blueb1.png:12113"
+      },
+      "pickStorage": {
+        "id": "kg23w77nztccfcs28r7gqe6ax98fccyr",
+        "file": "crop/2026-08-22_TEN-FS_g1_redp5.png:61407"
+      }
+    },
     "teemee": {
       "ban": "TeeMee.png",
       "pick": "TeeMee.png",
@@ -1405,6 +1418,19 @@
       "pickStorage": {
         "id": "kg20sabmfkjry40ebq15reb0xd8f466m",
         "file": "Tulen.png:79471"
+      }
+    },
+    "unnamed-blue-armour": {
+      "ban": null,
+      "pick": null,
+      "checked": false,
+      "banStorage": {
+        "id": "kg29032vdd7f47p1hyzj4nwgf18fcdpa",
+        "file": "crop/2026-09-04_FS-GJC_g4_redb1.png:13843"
+      },
+      "pickStorage": {
+        "id": "kg295w03wc5db7t1znwh2j8x018fdyjf",
+        "file": "crop/2026-08-22_TEN-FS_g5_redp2.png:78832"
       }
     },
     "valhein": {
@@ -1680,15 +1706,31 @@
         "file": "Zuka.png:80811"
       }
     },
-    "tamyn": {
+    "unnamed-white-beard": {
       "ban": null,
       "pick": null,
-      "checked": false
+      "checked": false,
+      "banStorage": {
+        "id": "kg25q36kvdqzjf5538eq3vy8358fefe3",
+        "file": "crop/manual_001.png:13460"
+      },
+      "pickStorage": {
+        "id": "kg24776kawye9v0temn5ht08xd8fft11",
+        "file": "crop/manual_001.png:72106"
+      }
     },
-    "unnamed-blue-armour": {
+    "unnamed-goggles": {
       "ban": null,
       "pick": null,
-      "checked": false
+      "checked": false,
+      "banStorage": {
+        "id": "kg29vr88n3zmvty3ry35a4h2f18feqa0",
+        "file": "crop/manual_001.png:11530"
+      },
+      "pickStorage": {
+        "id": "kg2e3brwe6fmv8jns8ctc5aqg98feqnb",
+        "file": "crop/manual_001.png:66678"
+      }
     }
   }
 }

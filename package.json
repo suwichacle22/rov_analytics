@@ -2,11 +2,15 @@
   "name": "rov-analytics",
   "private": true,
   "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "convex:dev": "convex dev",
-    "convex:deploy": "convex deploy"
-  },
-  "dependencies": {
-    "convex": "^1.46.0"
+    "dev": "bun --filter @rov/web dev",
+    "build": "bun --filter @rov/web build",
+    "typecheck": "bun --filter '*' typecheck",
+    "backend:dev": "bun --filter @rov/backend dev",
+    "backend:deploy": "bun --filter @rov/backend deploy"
   }
 }

@@ -1,0 +1,16 @@
+{
+  "seriesId": "2026-08-23_BAC-EA",
+  "tournament": "rpl-2026-winter",
+  "stage": "leg1",
+  "bestOf": 5,
+  "date": "2026-08-23",
+  "dateManual": false,
+  "patch": "",
+  "teamA": "BAC",
+  "teamB": "EA",
+  "homeTeam": "BAC",
+  "vodUrl": "https://www.youtube.com/watch?v=EVju4se3pJE&t=1895s",
+  "layout": "rpl2026",
+  "notes": "",
+  "winner": null
+}

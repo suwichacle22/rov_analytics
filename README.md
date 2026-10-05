@@ -2,22 +2,119 @@
 
 Team draft statistics for RoV (Arena of Valor) pro play, built from broadcast screenshots.
 
-Two programs share one data model. This repository holds the first one, the **extractor**, which runs on your PC. It also has a local Dashboard page that shows the statistics of the games on this PC. The public dashboard (TanStack Start plus Convex) comes later and reads what the extractor writes. Spec: `docs/rov-draft-stats-spec.pdf`.
+Spec: `docs/rov-draft-stats-spec.pdf`.
 
-## Extractor
+## Layout
+
+One repository, three parts. Code that runs somewhere on its own is an app, code that apps share is a package.
+
+```
+apps/
+  extractor/     Python. Screenshots in, checked games out. Runs on your PC only.
+  web/           TypeScript. TanStack Start and Tailwind. The dashboard.
+packages/
+  backend/       TypeScript. Convex schema, queries and mutations.
+data/            Screenshots, drafts, saved games and reference data of the extractor.
+docs/
+server/             up.sh starts everything on a Linux server, send.cmd brings the data there.
+docker-compose.yml  The dashboard and the extractor as two containers.
+RoV Extractor.cmd   Starts the extractor on the PC.
+package.json        Bun workspace: apps/* and packages/*.
+.env.local          Convex address and key. Never committed.
+```
+
+How a game travels:
+
+1. The extractor recognises and checks a game on your PC, and you save it.
+2. **Push to Convex** in the extractor, or `rov-extract push`, sends the game to Convex.
+3. The backend functions in Convex turn the games into statistics.
+4. The web app asks Convex for the statistics and shows them. A game pushed later shows up in an open dashboard without a reload.
+
+The source of the backend lives in `packages/backend`, and a deploy copies it to the Convex deployment, where it runs next to the database. The web app does not contain the functions. It imports only their names and types from `@rov/backend`, so a change to the schema or to a function shows up in the dashboard as a type error.
+
+Each part goes to a different place:
+
+| Folder | Runs on | How it gets there |
+|---|---|---|
+| `apps/extractor` | Your PC, or a Linux server | `RoV Extractor.cmd`, or `server/up.sh` |
+| `packages/backend` | Convex | `bun run backend:deploy` |
+| `apps/web` | Your PC, or a Linux server | `bun run dev`, or `server/up.sh` |
+
+Only the web app is meant to be public. The extractor has no login and stays on your network. The Convex key stays in the root `.env.local`; `apps/web/.env.local` holds only the address.
+
+### Commands from the repo root
+
+```
+bun install              # once, and after a dependency changes
+bun run dev              # the dashboard on http://localhost:3000
+bun run backend:deploy   # send the Convex functions to the deployment in .env.local
+bun run typecheck        # type-check the backend and the web app
+bun run build            # production build of the web app
+```
+
+### Running on a Linux server
+
+The dashboard and the extractor run as two Docker containers that start again after a reboot. The server needs git and Docker with the compose plugin, nothing else. Convex stays where it is.
+
+1. On the server: `git clone -b monorepo https://github.com/suwichacle22/rov_analytics.git`
+2. On the PC, in the project folder: `server\send.cmd user@server`
+
+`send.cmd` copies what git does not carry, which is `.env.local`, the screenshots and unsaved drafts in `data/series`, and the hero art in `data/ref/art` and `data/ref/crops`. Then it runs `server/up.sh` on the server, which builds and starts both containers and prints the two addresses. The repo is expected in `~/rov_analytics`; give another folder as the second argument.
+
+| | Port | Change it in `.env` on the server |
+|---|---|---|
+| Dashboard | 3000 | `WEB_PORT=...` |
+| Extractor | 8787 | `EXTRACTOR_PORT=...` |
+
+- **Updating.** On the server, `git pull` and `./server/up.sh`.
+- **One copy of the data.** After the move the server holds the data. `send.cmd` refuses to run a second time, because it would put the PC's files over the server's; `server\send.cmd user@server again` does it anyway.
+- **The Convex address.** The dashboard is built with the address from `.env.local`, and every browser that opens it talks to Convex directly, so the address has to work from the browsers too. A container cannot look up a `.local` name, so `up.sh` looks it up on the server and passes the result to the containers. If the server cannot find the name either, write the IP address into `.env.local`.
+- **The Convex functions** are not deployed from the server. `bun run backend:deploy` on the PC does that, as before.
+- **Looking inside.** `docker compose ps` and `docker compose logs -f extractor` in the repo folder.
+- The extractor has no login. Keep port 8787 inside your network.
+
+## Dashboard (apps/web)
+
+`bun run dev` opens the dashboard at http://localhost:3000. The root address is the league page; each team has its own page, `/teams/<id>`, for example `/teams/FS`. A match type is chosen with `?stage=leg1`, and the control for it appears once there are games in more than one match type. It needs `apps/web/.env.local` with `VITE_CONVEX_URL`, see `.env.example` there.
+
+- **League page.** Standings ordered by matches won, then game difference, with each team's games as marks in its own colour and its signature heroes, the ones it picks at least twice as often as the league. Blue side against red side over every game. The hero pool: every hero picked or banned, how often it is in a draft, and the record of the side that picked it. A few sentences on what stands out, written by rules in `src/components/league.tsx`. The numbers come from the Convex query `stats:league`, computed in `packages/backend/convex/lib/leagueStats.ts`.
+- **Teams and their colour.** Every team in the Convex `teams` table has a page; the switcher in the top bar lists them all, with the league page first. `src/lib/teams.ts` holds the colours of each: the accent, the text colour on top of it, and the background. The accents are taken from the team logos on the broadcast (Full Sense orange, Buriram blue, Bacon Time pink, King of Gamers white, Hydra light blue, eArena pink, Tenacity teal, SOLYX gold, Godji Check green). A team without an entry gets the default grey.
+- **How colour is used.** Black, greys and the one team colour. The team colour marks the team's wins and the team's own numbers, nothing else. A loss is a hollow ring, not a second colour, and the side of a game is written out as B or R. So the page stays readable with any team colour and for colour-blind readers.
+- **One mark is one game.** Counts and records are drawn as a row of marks, filled for a win and hollow for a loss, instead of a bar beside a percentage. With this few games a percentage suggests more than the data holds, and the marks can be counted. A row shows the games behind it on hover or with the Tab key.
+- **Order of the page.** The answer first, details after: Overview with the win rate, a few sentences on what stands out, every game in order, the two sides and the game times. Then Picks with the hero pool of each player, Bans, Draft, Players and Matches. A match opens to show the draft of each game, and in "Every game, in order" pointing at a match, or moving to it with the Tab key, shows the drafts of all its games in a box laid out like the broadcast bar (`src/components/peek.tsx`). The sentences under "What stands out" are written by rules in `src/components/overview.tsx`, each with a minimum number of games.
+- **Picks are counted per match.** A team can pick a hero once per match, so a pick shows "7 of 8 matches" beside its games.
+- **What counts.** A saved game counts as checked. A game pushed as a draft with `rov-extract push --drafts` is included too, and the notice at the top says how many of those there are. Saving and pushing the game later replaces its unchecked copy. A slot without a hero is left out and counted in the notice.
+- **Who played a hero** comes from the post-game table, so a swap after the draft is already counted for the right player. The position by pick order needs the positions from the Teams page of the extractor.
+- **Where things are.** The league page is `src/routes/index.tsx` with its parts in `src/components/league.tsx`. The team page is `src/routes/teams.$teamId.tsx`. Its sections are in `src/components/`: `overview.tsx`, `picks.tsx`, `bans.tsx`, `draft.tsx`, `players.tsx` and `matches.tsx`, with the shared pieces in `ui.tsx` and `hero.tsx`. The base colours are the theme in `src/styles.css`. The numbers come from the Convex queries `stats:league`, `stats:dashboard` and `games:drafts`, see Backend below.
+
+## Backend (packages/backend)
+
+The Convex functions in `packages/backend/convex/`:
+
+- `schema.ts`: the tables `series`, `games`, `draftActions` with one row per draft action, `heroes`, `teams` and `images`.
+- `games.ts`: `upsert`, `remove`, `removeGame`, `removeSeries`, `listSeries`, `bySeries`, and `drafts`, the draft of every game of one match for the dashboard. `heroes.ts` and `teams.ts` mirror the reference data. `files.ts` handles the screenshots.
+- `stats.ts`: the query `dashboard`, which the web app calls. The calculation itself is `lib/teamStats.ts`, plain functions without database access.
+- `lib/ref.ts`: lane and match type names, shared with the web app as `@rov/backend/ref`.
+
+`bun run backend:deploy` sends them to the deployment named in the root `.env.local`: `CONVEX_URL=https://<deployment>.convex.cloud` for Convex Cloud, or `CONVEX_SELF_HOSTED_URL=http://<host>:3210` and `CONVEX_SELF_HOSTED_ADMIN_KEY=...` for a self-hosted Convex. The extractor reads the same file. The generated folder `convex/_generated` is committed, because the web app imports its types.
+
+Each pick in the `draftActions` table has `player` and `lane` (who played the hero, from the post-game table) and `seatPlayer` (the seat that made the pick). Use `player` for every statistic about players. Each row of the `series` table has `vodUrl`, the source link of the match. A `games` row has `checked`, false for a game that was pushed as a draft.
+
+## Extractor (apps/extractor)
 
 Two words are used throughout. A **match** is two teams meeting in a best of five or seven, for example FS vs TEN. A **game** is one game inside it, G1 to G7. Names in code and storage still say `series` for a match: `seriesId`, `data/series/`, `series.json` and the Convex `series` table.
 
-Python 3.12 or newer and uv.
+Python 3.12 or newer and uv. Every `rov-extract` command runs from `apps/extractor`:
 
 ```
+cd apps/extractor
 python -m uv sync
 python -m uv run rov-extract serve
 ```
 
-Open http://127.0.0.1:8787. On Windows, double-click `RoV Extractor.cmd` instead: it installs dependencies on first run, starts the server and opens the browser. Close its window to stop.
+Open http://127.0.0.1:8787. On Windows, double-click `RoV Extractor.cmd` in the repo root instead: it installs dependencies on first run, starts the server and opens the browser. Close its window to stop. The extractor finds `data/` and `.env.local` in the repo root on its own.
 
-The launcher starts with `--reload`, so a change to any Python file under `src/` restarts the server on its own; edits to the HTML, CSS and JavaScript need only a browser reload. Changes under `data/` never restart it. The launcher also starts with `--lan`, so a phone on the same Wi-Fi can open the app too. The window prints the address, for example `http://192.168.1.110:8787`. Both the editor and the Heroes page have a phone layout; on a phone the checks and the Save button sit in a sheet at the bottom. Only devices on your network can reach it, there is no login, and the first start may show a Windows Firewall prompt for Python where you should allow private networks. Leave `--lan` off to keep it on this PC only.
+The launcher starts with `--reload`, so a change to any Python file under `apps/extractor/src/` restarts the server on its own; edits to the HTML, CSS and JavaScript need only a browser reload. Changes under `data/` never restart it. The launcher also starts with `--lan`, so a phone on the same Wi-Fi can open the app too. The window prints the address, for example `http://192.168.1.110:8787`. Both the editor and the Heroes page have a phone layout; on a phone the checks and the Save button sit in a sheet at the bottom. Only devices on your network can reach it, there is no login, and the first start may show a Windows Firewall prompt for Python where you should allow private networks. Leave `--lan` off to keep it on this PC only.
 
 The page has three columns: matches on the left, the game in the middle as four numbered steps, and the checks on the right with the Save button. Game tabs sit in the top bar. The address bar holds `#<match>/<game>`, so a reload or a bookmark reopens the same game.
 
@@ -41,6 +138,18 @@ The result belongs to the game that asked for it. If you open another game while
 - **Heroes it is sure about** replace what the field holds, and the message lists every correction. A field that repeats a hero placed elsewhere for certain is cleared.
 - **Fields you set by hand** since the page was opened are kept.
 - **A hero it cannot name** stays empty with the closest candidates listed first in that slot's search box. An empty field asks for your choice; a wrong name would hide the problem.
+
+#### What you still have to check
+
+A game that is not saved yet shows what needs your eyes. The game tab in the top bar and the game's dot in the match list turn red, and the tab carries the number of values to look at. A draft with nothing flagged stays amber, a saved game is green. The list is at the top of the right column under "To check":
+
+- a hero that Recognise read with a score under 90%, with the score on the slot,
+- a hero in the form that is not what Recognise read,
+- a slot or a player row without a hero,
+- a player name that was matched loosely, with what the screen reads,
+- a missing winner or game time.
+
+Click an item to jump to its field. **OK** says the value is right, and "All of these are right" settles every item that can be settled that way. Choosing a hero or a name by hand counts as confirmed too. The confirmation is stored with the draft (`confirmed` on the slot or the player row), so it survives a reload. The rule lives in `review.py`; the threshold is `REVIEW_SCORE`.
 
 What is read:
 
@@ -72,18 +181,11 @@ The **Teams** link in the top bar opens the team master: one card per team with 
 - Saving a game adds player names that are not listed yet, without a position.
 - A card says which positions have no player yet.
 
-### Dashboard
-
-`/dashboard` (the Dashboard link in the top bar) shows the draft statistics of one team, computed on every load from the games in `data/series`. Choose the team and the match type in the filter row; the address keeps both, for example `/dashboard?team=FS&stage=leg1`.
-
-- **What counts.** A saved game counts as checked. A game that only has a draft, for example straight from Recognise, is included too and the notice at the top says how many of those there are. A slot without a hero is left out of the hero tables and counted in the notice. A game chip in the Matches table opens that game in the form.
-- **Sections.** Record by match, game and side, and average game time. Picks with won and lost and who played the hero. Picks against the team. Hero pool of each player. Bans by and against the team, split by ban phase. First pick on blue side, first two picks on red side, and the opponent's first pick. Position by pick order. Answers to an opponent pick: the hero the team picked in its next turn, for pairs seen at least twice. Most contested heroes. Per-game totals and player averages.
-- **Who played a hero** comes from the post-game table, so a swap after the draft is already counted for the right player. Position by pick order needs the positions from the Teams page.
-- The numbers come from `team_stats` in `src/rov_extractor/stats.py`, served at `/api/stats?team=&stage=`. The public dashboard should use the same definitions.
-
 ### Heroes page
 
 The **Heroes** link in the top bar opens a table of every hero with its ban icon, its pick art, its id and name, and the broadcast crops learned so far. Use it to confirm each hero is paired with the right image: pick another file from the dropdown when one is wrong, tick **Checked** or double-click the row (double-tap on a phone) when it is right, rename or remove heroes, or add a new one. Rows without art are highlighted, and files that no hero uses are listed at the bottom. The pairing is saved to `data/ref/art-map.json` and the recogniser reads it from there. When Convex is configured, every Save also mirrors the hero list (id, name, forms, checked, whether art exists) into the `heroes` table for the dashboard; `rov-extract push --heroes` does the same from the command line. Each hero's ban icon and pick art are uploaded to Convex file storage once, their storage ids are cached in `art-map.json`, and only files you change are sent again. The dashboard reads `heroes:listWithArt` to get names and image URLs.
+
+To give a hero its own image, press **Upload** next to the ban icon or the pick art, or drop an image on it. An image on the clipboard works too: press **Paste**, or move the pointer over the icon or the art and press Ctrl+V. The Paste button only shows on `localhost`, because browsers let a page read the clipboard from a button only there; Ctrl+V works on every address. Any image works: it is cut around the middle to the right shape and resized to the size of the other files (72 x 72 for a ban icon, 138 x 250 for pick art), stored in `data/ref/art`, paired with the hero and sent to Convex at once, without pressing Save. A file the hero had before stays on disk and shows up in the list of unused files.
 
 You can also teach the recogniser directly from this page. Drop a crop from a broadcast screenshot on a hero's row (a tall crop is stored as a pick splash, a roughly square one as a ban icon), or use the "+ ban" and "+ pick" buttons. Hovering a learned crop shows a delete button for wrong ones.
 
@@ -116,6 +218,16 @@ Attach a screenshot by clicking a box, dropping a file on it, or pasting. Ctrl V
 
 The original file name is not kept. Every screenshot is stored as `<teamA>_vs_<teamB>_<match type>_g<N>_<draft|post>.<ext>`, for example `FS_vs_BRU_leg1_g1_draft.png`. Changing the match type renames the files of that match, the names inside its game files, and the records in Convex. Files named the old way (`g1_draft.png`) are still found.
 
+### Matches from a list of links
+
+```
+python -m uv run rov-extract import [--grab] [--dry-run] [--file <path>]
+```
+
+`data/links.txt` holds one broadcast link per line; a playlist link stands for every video in it. `import` reads each video's chapter list, where the Garena broadcast names every match and game ("KOG vs BRU เริ่มดราฟเกม 1"), and creates a match for each team pair that is not on disk yet: the teams from the chapter title, the home team as the first one named, the date from the video, and a source link that opens the video where the match starts. A match already there with the same teams on the same day is left alone, so the command can be run again after adding links. A line `stage: leg1`, `bestof: 5` or `tournament: rpl-2026-winter` applies to the links below it; `#` starts a note. A team name that is not an id in `data/ref/teams.json` is reported and that match is skipped.
+
+With `--grab` it then takes the screenshots of every match it found, see the next section; games that already have theirs are skipped. `--dry-run` only prints what would be created.
+
 ### Screenshots from the source video
 
 ```
@@ -133,13 +245,13 @@ Only the parts of the video it needs are downloaded: the scan runs on the 144p a
 
 ### Match date
 
-The screenshots show no date, so the day of a match is read from its source link. The New match dialog fills the date as soon as a source link is entered; while the video is being read, the Create match button says "Reading the date…" and is disabled, and a submit sent in that moment waits for the date, so a match is never created with today's date by accident. Recognise checks it again and corrects the match when the video says another day. A date typed by hand, in the dialog or in the Date field under the match title, is kept and never replaced. A match without a source link keeps the date it was created with. The day is taken in Thai time (`BROADCAST_TZ` in `src/rov_extractor/source.py`).
+The screenshots show no date, so the day of a match is read from its source link. The New match dialog fills the date as soon as a source link is entered; while the video is being read, the Create match button says "Reading the date…" and is disabled, and a submit sent in that moment waits for the date, so a match is never created with today's date by accident. Recognise checks it again and corrects the match when the video says another day. A date typed by hand, in the dialog or in the Date field under the match title, is kept and never replaced. A match without a source link keeps the date it was created with. The day is taken in Thai time (`BROADCAST_TZ` in `apps/extractor/src/rov_extractor/source.py`).
 
 The id of a match, and with it the folder name, is fixed when the match is created and keeps that day. A second match that would get the same id takes a number, for example `2026-09-29_FS-KOG-2`.
 
 ### Match type
 
-Every match has a match type: Regular season, Leg 1, Leg 2, Playoff or Final. It is stored as `stage` in `series.json` (`regular`, `leg1`, `leg2`, `playoffs`, `final`). Choose it in the New match dialog, or change it later with the Match type field under the match title. Changing it also updates the saved games of that match and pushes them to Convex again. The list lives in `STAGES` in `src/rov_extractor/models.py`.
+Every match has a match type: Regular season, Leg 1, Leg 2, Playoff or Final. It is stored as `stage` in `series.json` (`regular`, `leg1`, `leg2`, `playoffs`, `final`). Choose it in the New match dialog, or change it later with the Match type field under the match title. Changing it also updates the saved games of that match and pushes them to Convex again. The list lives in `STAGES` in `apps/extractor/src/rov_extractor/models.py`.
 
 ### Deleting
 
@@ -151,32 +263,21 @@ Each match in the left rail has a menu button with Delete match. The open game h
 
 ### Command line
 
-```
-python -m uv run rov-extract list                 # matches and games on disk
-python -m uv run rov-extract validate [match]     # re-run the checks on saved games
-python -m uv run rov-extract push [match] [--game N]
-```
+Run these from `apps/extractor`:
 
 ```
+python -m uv run rov-extract list                 # matches and games on disk
+python -m uv run rov-extract import [--grab]      # create the matches named in data/links.txt
+python -m uv run rov-extract validate [match]     # re-run the checks on saved games
+python -m uv run rov-extract push [match] [--game N] [--drafts] [--heroes]
 python -m uv run rov-extract purge-images [match] [--dry-run]   # drop local screenshots already in Convex
 ```
 
-`push` sends a saved game to Convex through the mutation `games:upsert` and uploads its screenshots if they are not stored yet. Put `CONVEX_URL=https://<deployment>.convex.cloud` in `.env.local`, or for a self-hosted Convex `CONVEX_SELF_HOSTED_URL=http://<host>:3210` and `CONVEX_SELF_HOSTED_ADMIN_KEY=...`.
+`push` sends the saved games to Convex through the mutation `games:upsert`, uploads their screenshots if they are not stored yet, and mirrors the team names. With `--drafts` it also sends the games that are not saved yet, marked as unchecked, so the dashboard can show them before you have checked every game. A draft without any hero is skipped. Run it again after you change drafts, because a draft is not pushed on its own. With `--heroes` it mirrors the hero list and art; a hero without art of its own gets its first learned crop as its picture.
 
-### Convex backend
+### Convex
 
-Each pick in the `draftActions` table has `player` and `lane` (who played the hero, from the post-game table) and `seatPlayer` (the seat that made the pick). Use `player` for every statistic about players. The `by_player` index serves those queries.
-
-Each row of the `series` table has `vodUrl`, the source link of the match.
-
-The functions live in `convex/` at the repo root: `schema.ts` (series, games, one row per draft action, images), `games.ts` (`upsert`, `remove`, `listSeries`, `bySeries`) and `files.ts` (upload URL, `saveImage`, `imageUrl`, `listImages`). Deploy them with Bun:
-
-```
-bun install
-bunx convex deploy
-```
-
-The CLI reads the same variables from `.env.local`. Screenshots attached in the app are copied into the match folder and, when Convex is configured, uploaded to Convex file storage at the same time. The local copy is a cache: `purge-images` deletes the ones already stored, and the app or `recognise` downloads a file again when it needs it. The hero art and learned crops stay local.
+The extractor reads the Convex address and key from `.env.local` in the repo root, see Backend above. Screenshots attached in the app are copied into the match folder and, when Convex is configured, uploaded to Convex file storage at the same time. The local copy is a cache: `purge-images` deletes the ones already stored, and the app or `recognise` downloads a file again when it needs it. The hero art and learned crops stay local.
 
 ### Reference data
 

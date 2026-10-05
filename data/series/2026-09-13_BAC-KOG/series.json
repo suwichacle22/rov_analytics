@@ -1,0 +1,16 @@
+{
+  "seriesId": "2026-09-13_BAC-KOG",
+  "tournament": "rpl-2026-winter",
+  "stage": "leg1",
+  "bestOf": 5,
+  "date": "2026-09-13",
+  "dateManual": false,
+  "patch": "",
+  "teamA": "BAC",
+  "teamB": "KOG",
+  "homeTeam": "BAC",
+  "vodUrl": "https://www.youtube.com/watch?v=HIQ5uKa-1_A&t=23738s",
+  "layout": "rpl2026",
+  "notes": "",
+  "winner": null
+}

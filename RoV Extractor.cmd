@@ -1,6 +1,7 @@
 @echo off
 title RoV Draft Extractor
-cd /d "%~dp0"
+rem The extractor lives in apps\extractor. It finds data\ and .env.local in the repo root on its own.
+cd /d "%~dp0apps\extractor"
 where uv >nul 2>nul
 if %errorlevel%==0 (set UV=uv) else (set UV=python -m uv)
 echo Installing or updating dependencies (first run takes a minute)...

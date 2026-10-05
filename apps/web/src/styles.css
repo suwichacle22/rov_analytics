@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/* Black, greys and one accent. The accent is the colour of the team on screen: it marks that
+   team's wins and that team's numbers, and nothing else. Every other mark is neutral, so a loss
+   is a hollow ring, not a second colour. The accent is set per team in src/lib/teams.ts. */
+@theme {
+  --color-bg: #050505;
+  --color-panel: rgb(255 255 255 / 0.03);
+  --color-panel-2: rgb(255 255 255 / 0.06);
+  --color-panel-3: rgb(255 255 255 / 0.1);
+  --color-line: rgb(255 255 255 / 0.09);
+  --color-line-2: rgb(255 255 255 / 0.18);
+  --color-ink: #d6d6d9;
+  --color-muted: #85868c;
+  --color-strong: #ffffff;
+  --color-accent: #d6d6d9;
+  --color-accent-ink: #0a0a0a;
+  --color-tip: #161617;
+  --font-sans: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  html,
+  body {
+    min-height: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font: 13px/1.5 var(--font-sans);
+    font-feature-settings: "cv01", "ss03";
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer components {
+  /* A data table: hairline rows, quiet header. */
+  .tbl {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .tbl th {
+    padding: 0 12px 7px 0;
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--color-muted);
+  }
+  .tbl td {
+    padding: 6px 12px 6px 0;
+    border-top: 1px solid var(--color-line);
+    vertical-align: middle;
+  }
+  .tbl th:last-child,
+  .tbl td:last-child {
+    padding-right: 0;
+  }
+  /* A row that shows its games on hover or focus. */
+  .row-tip:hover,
+  .row-tip:focus-visible {
+    background: var(--color-panel-2);
+    outline: none;
+  }
+  .row-tip:focus-visible {
+    box-shadow: inset 0 0 0 1px var(--color-line-2);
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}

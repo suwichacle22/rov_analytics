@@ -1,0 +1,23 @@
+{
+  "name": "@rov/backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./api": "./convex/_generated/api.js",
+    "./dataModel": "./convex/_generated/dataModel.d.ts",
+    "./ref": "./convex/lib/ref.ts"
+  },
+  "scripts": {
+    "dev": "convex dev --env-file ../../.env.local",
+    "deploy": "convex deploy --env-file ../../.env.local --yes",
+    "codegen": "convex codegen --env-file ../../.env.local",
+    "typecheck": "tsc --noEmit -p convex"
+  },
+  "dependencies": {
+    "convex": "^1.46.0"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  }
+}

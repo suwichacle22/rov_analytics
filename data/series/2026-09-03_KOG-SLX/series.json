@@ -1,0 +1,16 @@
+{
+  "seriesId": "2026-09-03_KOG-SLX",
+  "tournament": "rpl-2026-winter",
+  "stage": "leg1",
+  "bestOf": 5,
+  "date": "2026-09-03",
+  "dateManual": false,
+  "patch": "",
+  "teamA": "KOG",
+  "teamB": "SLX",
+  "homeTeam": "KOG",
+  "vodUrl": "https://www.youtube.com/watch?v=S6hWuKlsj34&t=2820s",
+  "layout": "rpl2026",
+  "notes": "",
+  "winner": null
+}

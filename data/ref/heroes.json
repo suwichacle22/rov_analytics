@@ -532,6 +532,14 @@
     {
       "id": "zuka",
       "name": "Zuka"
+    },
+    {
+      "id": "unnamed-white-beard",
+      "name": "Unnamed (white beard)"
+    },
+    {
+      "id": "unnamed-goggles",
+      "name": "Unnamed (blond, goggles)"
     }
   ]
 }

@@ -1,0 +1,16 @@
+{
+  "seriesId": "2026-09-05_KOG-TEN",
+  "tournament": "rpl-2026-winter",
+  "stage": "leg1",
+  "bestOf": 5,
+  "date": "2026-09-05",
+  "dateManual": false,
+  "patch": "",
+  "teamA": "KOG",
+  "teamB": "TEN",
+  "homeTeam": "KOG",
+  "vodUrl": "https://www.youtube.com/watch?v=1xz4xUzQLBw&t=2260s",
+  "layout": "rpl2026",
+  "notes": "",
+  "winner": null
+}
