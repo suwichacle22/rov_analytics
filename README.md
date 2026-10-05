@@ -59,7 +59,7 @@ The dashboard and the extractor run as two Docker containers that start again af
 1. On the server: `git clone -b monorepo https://github.com/suwichacle22/rov_analytics.git`
 2. On the PC, in the project folder: `server\send.cmd user@server`
 
-`send.cmd` copies what git does not carry, which is `.env.local`, the screenshots and unsaved drafts in `data/series`, and the hero art in `data/ref/art` and `data/ref/crops`. Then it runs `server/up.sh` on the server, which builds and starts both containers and prints the two addresses. The repo is expected in `~/rov_analytics`; give another folder as the second argument.
+`send.cmd` copies what git does not carry, which is `.env.local`, the screenshots and unsaved drafts in `data/series`, and the hero art in `data/ref/art` and `data/ref/crops`. The hero art and crops do not depend on it: an extractor that lacks them fetches them from Convex when it starts, so `.env.local` alone is enough for the heroes. Then it runs `server/up.sh` on the server, which builds and starts both containers and prints the two addresses. The repo is expected in `~/rov_analytics`; give another folder as the second argument.
 
 | | Port | Change it in `.env` on the server |
 |---|---|---|
@@ -270,6 +270,7 @@ python -m uv run rov-extract list                 # matches and games on disk
 python -m uv run rov-extract import [--grab]      # create the matches named in data/links.txt
 python -m uv run rov-extract validate [match]     # re-run the checks on saved games
 python -m uv run rov-extract push [match] [--game N] [--drafts] [--heroes]
+python -m uv run rov-extract pull                 # fetch hero art and crops from Convex that this machine lacks
 python -m uv run rov-extract purge-images [match] [--dry-run]   # drop local screenshots already in Convex
 ```
 
@@ -277,7 +278,9 @@ python -m uv run rov-extract purge-images [match] [--dry-run]   # drop local scr
 
 ### Convex
 
-The extractor reads the Convex address and key from `.env.local` in the repo root, see Backend above. Screenshots attached in the app are copied into the match folder and, when Convex is configured, uploaded to Convex file storage at the same time. The local copy is a cache: `purge-images` deletes the ones already stored, and the app or `recognise` downloads a file again when it needs it. The hero art and learned crops stay local.
+The extractor reads the Convex address and key from `.env.local` in the repo root, see Backend above. Screenshots attached in the app are copied into the match folder and, when Convex is configured, uploaded to Convex file storage at the same time. The local copy is a cache: `purge-images` deletes the ones already stored, and the app or `recognise` downloads a file again when it needs it.
+
+The heroes live in Convex too: the list, the ban icon and pick art paired with each hero, and every learned crop. Saving the Heroes page, setting art, adding or deleting a crop and saving a game all send the change. In the other direction, the extractor fetches on every start the art files and crops that Convex holds and this machine lacks, and adds heroes missing from `heroes.json`; `rov-extract pull` does the same by hand. That is how a fresh clone gets its heroes, since git carries neither folder. Nothing on disk is replaced, and a file missing on this machine never deletes the stored one.
 
 ### Reference data
 

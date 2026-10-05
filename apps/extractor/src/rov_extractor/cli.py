@@ -31,6 +31,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--heroes", action="store_true", help="also mirror heroes.json into Convex")
     p.add_argument("--drafts", action="store_true", help="also push games that are not saved yet, marked as unchecked")
 
+    sub.add_parser("pull", help="Fetch hero art and learned crops from Convex that this machine lacks")
+
     ls = sub.add_parser("list", help="List matches and games on disk")
 
     pi = sub.add_parser("purge-images", help="Delete local screenshots that are already stored in Convex")
@@ -114,6 +116,15 @@ def main(argv: list[str] | None = None) -> int:
             reload_includes=["*.py"] if args.reload else None,
         )
         return 0
+    if args.cmd == "pull":
+        from . import push as cloud
+
+        r = cloud.pull_heroes()
+        if not r["ok"]:
+            print(f"FAILED {r['error']}")
+            return 1
+        print(f"{r['heroes']} heroes added, {r['art']} art files and {r['crops']} crops fetched, {r['failed']} failed")
+        return 1 if r["failed"] else 0
     if args.cmd == "list":
         for s in store.list_series():
             print(f"{s['seriesId']}  {s['teamA']} vs {s['teamB']}  Bo{s['bestOf']}  games {s['games']}  drafts {s['drafts']}")

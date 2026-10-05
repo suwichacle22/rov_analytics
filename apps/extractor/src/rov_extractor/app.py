@@ -24,7 +24,20 @@ STATIC = Path(__file__).parent / "static"
 
 @app.on_event("startup")
 def _warm() -> None:
-    recognise.warm_up()
+    import threading
+
+    def run() -> None:
+        # Hero art and learned crops are not in git. A machine that lacks them, such as a fresh
+        # clone on a server, fetches them from Convex before the banks are loaded.
+        if convex_url():
+            r = cloud.pull_heroes()
+            if not r.get("ok"):
+                print(f"Heroes not fetched from Convex: {r.get('error')}", flush=True)
+            elif r["heroes"] or r["art"] or r["crops"] or r["failed"]:
+                print(f"Fetched from Convex: {r['heroes']} heroes, {r['art']} art files, {r['crops']} crops, {r['failed']} failed", flush=True)
+        recognise.warm_up()
+
+    threading.Thread(target=run, daemon=True).start()
 
 
 @app.get("/")
@@ -207,6 +220,8 @@ async def crop_upload(hero: str, kind: str, file: UploadFile = File(...)) -> dic
     if not recognise.save_crop_file(file.file.read(), dest):
         raise HTTPException(400, "not an image")
     recognise.reset_banks()
+    if convex_url():
+        cloud.push_crops()
     return {"ok": True, "file": dest.name}
 
 
@@ -216,6 +231,8 @@ def crop_delete(hero: str, kind: str, name: str) -> dict[str, Any]:
     if p.exists():
         p.unlink()
         recognise.reset_banks()
+    if convex_url():
+        cloud.remove_crops([{"kind": kind, "heroId": Path(hero).name, "name": Path(name).name}])
     return {"ok": True}
 
 
@@ -273,8 +290,16 @@ def series_delete(series_id: str) -> dict[str, Any]:
         out["cloud"] = r.get("result")
     games = store.saved_games(series_id)
     store.delete_series(series_id)
-    out["forgotCrops"] = sum(recognise.forget_game(f"{series_id}_g{n}") for n in games)
+    out["forgotCrops"] = sum(_forget_crops(f"{series_id}_g{n}") for n in games)
     return out
+
+
+def _forget_crops(game_id: str) -> int:
+    """Drop the crops learned from a game, here and in Convex."""
+    n = recognise.forget_game(game_id)
+    if n and convex_url():
+        cloud.forget_crops(game_id)
+    return n
 
 
 @app.delete("/api/series/{series_id}/games/{game_no}")
@@ -289,7 +314,7 @@ def game_delete(series_id: str, game_no: int) -> dict[str, Any]:
             raise HTTPException(502, f"Convex did not answer, nothing was deleted: {r.get('error')}")
         out["cloud"] = r.get("result")
     out["removed"] = store.delete_game(series_id, game_no)
-    out["forgotCrops"] = recognise.forget_game(out["gameId"])
+    out["forgotCrops"] = _forget_crops(out["gameId"])
     return out
 
 
@@ -375,6 +400,8 @@ def game_save(series_id: str, game_no: int, body: GameInput) -> JSONResponse:
             learned = recognise.remember_game(draft_image, refdata.layout(series.layout), record)
         except Exception:  # noqa: BLE001
             learned = 0
+        if learned and convex_url():
+            cloud.push_crops()
     return JSONResponse({"ok": True, "path": str(p), "gameId": record["gameId"], "issues": [i.model_dump() for i in issues], "learnedCrops": learned})
 
 

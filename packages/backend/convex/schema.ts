@@ -79,7 +79,20 @@ export default defineSchema({
     hasArt: v.boolean(),
     banArtId: v.optional(v.id("_storage")),
     pickArtId: v.optional(v.id("_storage")),
+    // File name of the art in data/ref/art, or "crop/<file>" when a learned crop stands in for it.
+    banArtName: v.optional(v.string()),
+    pickArtName: v.optional(v.string()),
   }).index("by_heroId", ["heroId"]),
+
+  // Crops of a hero learned from broadcasts, mirrored from data/ref/crops. Together with the art
+  // above they let an extractor on another machine fetch everything it recognises heroes with.
+  heroCrops: defineTable({
+    heroId: v.string(),
+    kind: v.string(), // "ban" | "pick"
+    name: v.string(),
+    storageId: v.id("_storage"),
+    size: v.number(),
+  }).index("by_hero", ["heroId", "kind"]),
 
   // Screenshots attached in the extractor. The file itself lives in Convex storage.
   images: defineTable({
