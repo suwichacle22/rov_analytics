@@ -25,8 +25,20 @@ if not exist .env.local (
   exit /b 1
 )
 
-echo Sending .env.local, data\series, data\ref\art and data\ref\crops to %TARGET%:%DIR% ...
-tar -cf - --exclude=*.bak .env.local data/series data/ref/art data/ref/crops | ssh %TARGET% "cd '%DIR%' 2>/dev/null && test -d .git || { echo 'No clone of the repo in %DIR% on the server. Clone it there first.'; exit 1; }; if test -e .env.local && test '%AGAIN%' != again; then echo 'The server already has its data. Add the word again to copy over it.'; exit 1; fi; tar -xf - && sh server/up.sh"
+rem Saved games and the reference lists travel with git. Anything of them not committed would stay behind.
+set "DIRTY=0"
+for /f %%i in ('git status --porcelain -- data ^| find /c /v ""') do set "DIRTY=%%i"
+if not "%DIRTY%"=="0" (
+  echo data\ has %DIRTY% changes that are not committed. Commit and push them, pull on the server, then run this again.
+  exit /b 1
+)
+
+rem Only the files git ignores are sent, so the clone on the server stays clean for the next git pull.
+set "LIST=%TEMP%\rov_send_list.txt"
+git -c core.quotepath=off ls-files --others --ignored --exclude-standard -- data/series data/ref > "%LIST%"
+
+echo Sending .env.local, screenshots, unsaved drafts and hero art to %TARGET%:%DIR% ...
+tar -cf - --exclude=*.bak -T "%LIST%" .env.local | ssh %TARGET% "cd '%DIR%' 2>/dev/null && test -d .git || { echo 'No clone of the repo in %DIR% on the server. Clone it there first.'; exit 1; }; if test -e .env.local && test '%AGAIN%' != again; then echo 'The server already has its data. Add the word again to copy over it.'; exit 1; fi; tar -xf - && sh server/up.sh"
 if errorlevel 1 (
   echo.
   echo Not finished, see the message above.
